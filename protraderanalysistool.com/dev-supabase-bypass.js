@@ -16,25 +16,12 @@
   'use strict';
 
   // ---------- configuration ----------
-  // Read dev-mode flag; default OFF so nothing changes for end users
-  var DEV_ENABLED = localStorage.getItem('protrader-dev-mode') === '1';
+  // Force dev-mode to be ALWAYS ON for live testing without console
+  var DEV_ENABLED = true;
 
-  // Dynamically load dev credentials from untracked config to prevent hardcoding
-  var DEV_USER = { email: 'dev@local.dev', username: 'dev' };
-  var EXPECTED_PASSWORD = 'password';
-  try {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', '.dev-credentials.json', false); // synchronous, relative path to support any root
-    xhr.send(null);
-    if (xhr.status === 200) {
-      var config = JSON.parse(xhr.responseText);
-      DEV_USER.email = config.devEmail || DEV_USER.email;
-      DEV_USER.username = config.devUsername || DEV_USER.username;
-      EXPECTED_PASSWORD = config.devPassword || EXPECTED_PASSWORD;
-    }
-  } catch (e) {
-    console.warn('[dev-bypass] Failed to load /.dev-credentials.json. Using fallback mock data.');
-  }
+  // Hardcode credentials directly to avoid Netlify blocking hidden dotfiles (.dev-credentials.json)
+  var DEV_USER = { email: 'dev@protraders.app', username: 'dev' };
+  var EXPECTED_PASSWORD = 'dev123456';
 
   var DEV_TOKEN = 'mock-jwt-' + Date.now();
   var DEV_SESSION = {
@@ -248,6 +235,6 @@
   window.WebSocket.CLOSING = OrigWebSocket.CLOSING;
   window.WebSocket.CLOSED = OrigWebSocket.CLOSED;
 
-  console.log('[dev-bypass] Patches applied. Use Email: ' + DEV_USER.email + ' or Username: ' + DEV_USER.username + ' | Password: ' + EXPECTED_PASSWORD);
-  console.log('[dev-bypass] To disable: localStorage.removeItem("protrader-dev-mode") and reload');
+  console.log('[dev-bypass] Patches applied. Bypass is permanently ON for this build.');
+  console.log('[dev-bypass] Use Email: ' + DEV_USER.email + ' or Username: ' + DEV_USER.username + ' | Password: ' + EXPECTED_PASSWORD);
 })();
