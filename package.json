@@ -1,0 +1,11 @@
+{
+  "name": "matchestool-pro",
+  "version": "1.0.0",
+  "description": "Matchestool.pro — Advanced Market Intelligence Terminal",
+  "private": true,
+  "scripts": {
+    "serve": "cd protraderanalysistool.com && python3 serve.py",
+    "start": "cd protraderanalysistool.com && python3 serve.py",
+    "dev": "cd protraderanalysistool.com && python3 serve.py"
+  }
+}
