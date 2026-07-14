@@ -4,6 +4,7 @@
   "description": "Matchestool.pro — Advanced Market Intelligence Terminal",
   "private": true,
   "scripts": {
+    "build": "echo \"Static site - no build step required\"",
     "serve": "cd protraderanalysistool.com && python3 serve.py",
     "start": "cd protraderanalysistool.com && python3 serve.py",
     "dev": "cd protraderanalysistool.com && python3 serve.py"
