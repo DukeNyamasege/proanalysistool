@@ -1,13 +1,13 @@
 {
-  "name": "Pro Trader Analysis",
-  "short_name": "Pro Trader",
-  "description": "Real-time digit, candle and market analytics for synthetic indices.",
+  "name": "Matchestool.pro — Market Intelligence Terminal",
+  "short_name": "Matchestool.pro",
+  "description": "Cyber-grade real-time digit, candle and market analytics terminal for synthetic indices.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#0a0e1a",
-  "theme_color": "#0a0e1a",
+  "background_color": "#03060d",
+  "theme_color": "#03060d",
   "categories": ["finance", "productivity", "utilities"],
   "icons": [
     {

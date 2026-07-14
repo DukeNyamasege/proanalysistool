@@ -168,8 +168,10 @@
     return origPushState(state, title, url);
   };
 
-  // Pre-seed a session so getSession() passes
-  localStorage.setItem('supabase.auth.token', JSON.stringify(DEV_SESSION));
+  // NOTE: Do NOT pre-seed the session here — the auth-gate.js controls when
+  // a session is created (after successful login). This lets the cyber auth
+  // gate intercept before the React app loads.
+  // The auth gate calls createSession() which writes to supabase.auth.token.
 
   // Monkey-patch fetch so /token calls return mock data
   var origFetch = window.fetch.bind(window);
