@@ -1,197 +1,187 @@
 /* =========================================================================
    MATCHESTOOL.PRO — AUTH GATE
-   Cyber-hacking themed login overlay that intercepts before the React app.
-   One dev login for development. Price: $100 USD.
+   Market Intelligence Terminal — Access Control Layer
    ========================================================================= */
 
 (function () {
   'use strict';
 
   // ---- CONFIG ----
-  var DEV_EMAIL = 'dev@protraders.app';
-  var DEV_USERNAME = 'dev';
-  var DEV_PASSWORD = 'dev123456';
-  var PRICE = '$100';
-  var CURRENCY = 'USD';
-  var CONTACT_URL = 'https://t.me/matchestool_pro';
+  var DEV_EMAIL    = 'admin@matchestool.pro';
+  var DEV_USERNAME = 'matchestool';
+  var DEV_PASSWORD = 'MatchesPro2024';
+  var CONTACT_URL   = 'https://t.me/matchestool_pro';
   var CONTACT_LABEL = '@matchestool_pro';
-  var SESSION_KEY = 'matchestool_session';
-  var BOOT_KEY = 'matchestool_booted';
+  var SESSION_KEY   = 'matchestool_session';
 
   // ---- HTML TEMPLATE ----
   var GATE_HTML = [
-    '<canvas id="cy-matrix-canvas"></canvas>',
-    '<div class="cy-auth-container">',
-    '  <div class="cy-brand">',
-    '    <div class="cy-brand-logo">',
-    '      <span class="cy-bracket">[</span>',
-    '      <span class="cy-glitch" data-text="MATCHESTOOL.PRO">MATCHESTOOL.PRO</span>',
-    '      <span class="cy-bracket">]</span>',
+    '<canvas id="mt-matrix-canvas"></canvas>',
+    '<div class="mt-auth-container">',
+
+    '  <div class="mt-brand">',
+    '    <div class="mt-brand-mark">',
+    '      <span class="mt-brand-arrow">▶</span>',
+    '      MATCHESTOOL.PRO',
     '    </div>',
-    '    <div class="cy-brand-tagline">Advanced Market Intelligence Terminal</div>',
-    '    <div class="cy-brand-status">',
-    '      <span class="cy-status-dot"></span>',
-    '      <span>SYSTEM ONLINE</span>',
+    '    <div class="mt-brand-tagline">Real-Time Market Intelligence Terminal</div>',
+    '    <div class="mt-brand-status">',
+    '      <span class="mt-status-dot"></span>',
+    '      <span>Feeds Active</span>',
+    '      <span class="mt-sep">|</span>',
+    '      <span class="mt-ticker-live">LIVE</span>',
     '    </div>',
     '  </div>',
-    '',
-    '  <div class="cy-auth-card">',
-    '    <span class="cy-corner tl"></span>',
-    '    <span class="cy-corner tr"></span>',
-    '    <span class="cy-corner bl"></span>',
-    '    <span class="cy-corner br"></span>',
-    '',
-    '    <div class="cy-card-header">',
-    '      <div class="cy-card-title">// ACCESS TERMINAL</div>',
-    '      <div class="cy-card-subtitle">Authenticate to enter the grid</div>',
+
+    '  <div class="mt-auth-card">',
+    '    <div class="mt-card-accent"></div>',
+    '    <span class="mt-corner tl"></span>',
+    '    <span class="mt-corner tr"></span>',
+    '    <span class="mt-corner bl"></span>',
+    '    <span class="mt-corner br"></span>',
+
+    '    <div class="mt-card-header">',
+    '      <div class="mt-card-title">Access Terminal</div>',
+    '      <div class="mt-card-subtitle">Enter your credentials to initialize session</div>',
     '    </div>',
-    '',
-    '    <div class="cy-alert" id="cy-alert">',
+
+    '    <div class="mt-alert" id="mt-alert">',
     '      <span>&#9888;</span>',
-    '      <span id="cy-alert-text">Invalid credentials</span>',
+    '      <span id="mt-alert-text">Invalid credentials</span>',
     '    </div>',
-    '',
-    '    <form class="cy-form" id="cy-login-form" autocomplete="off">',
-    '      <div class="cy-field">',
-    '        <label class="cy-label" for="cy-email">Email or Username</label>',
-    '        <div class="cy-input-wrap">',
-    '          <input class="cy-input" type="text" id="cy-email" name="email" placeholder="user@domain.com" autocomplete="off" spellcheck="false" />',
-    '          <span class="cy-input-icon">&#9993;</span>',
+
+    '    <form class="mt-form" id="mt-login-form" autocomplete="off">',
+    '      <div class="mt-field">',
+    '        <label class="mt-label" for="mt-email">Email / Username</label>',
+    '        <div class="mt-input-wrap">',
+    '          <input class="mt-input" type="text" id="mt-email" name="email" placeholder="user@matchestool.pro" autocomplete="off" spellcheck="false" />',
+    '          <span class="mt-input-icon">@</span>',
     '        </div>',
     '      </div>',
-    '',
-    '      <div class="cy-field">',
-    '        <label class="cy-label" for="cy-password">Access Key</label>',
-    '        <div class="cy-input-wrap">',
-    '          <input class="cy-input" type="password" id="cy-password" name="password" placeholder="••••••••••••" autocomplete="off" spellcheck="false" />',
-    '          <span class="cy-input-icon">&#128273;</span>',
+
+    '      <div class="mt-field">',
+    '        <label class="mt-label" for="mt-password">Access Key</label>',
+    '        <div class="mt-input-wrap">',
+    '          <input class="mt-input" type="password" id="mt-password" name="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="off" spellcheck="false" />',
+    '          <span class="mt-input-icon">&#8918;</span>',
     '        </div>',
     '      </div>',
-    '',
-    '      <button type="submit" class="cy-btn" id="cy-submit-btn">',
-    '        <span id="cy-btn-text">// INITIATE LOGIN</span>',
+
+    '      <button type="submit" class="mt-btn" id="mt-submit-btn">',
+    '        <span id="mt-btn-text">Initialize Session &#8594;</span>',
     '      </button>',
     '    </form>',
-    '',
-    '    <div class="cy-pricing">',
-    '      <div class="cy-pricing-label">Lifetime Access License</div>',
-    '      <div class="cy-pricing-amount"><span class="cy-currency">$</span>100<span class="cy-currency"> USD</span></div>',
-    '      <div class="cy-pricing-note">One-time payment &middot; Full terminal access</div>',
+
+    '    <div class="mt-pricing">',
+    '      <div class="mt-pricing-label">Lifetime Access License</div>',
+    '      <div class="mt-pricing-amount"><span class="mt-currency">$</span>100<span class="mt-currency"> USD</span></div>',
+    '      <div class="mt-pricing-note">One-time payment &middot; Full terminal access</div>',
     '    </div>',
-    '',
-    '    <div class="cy-contact">',
-    '      <div>Purchase access &middot; Contact:</div>',
+
+    '    <div class="mt-contact">',
+    '      Purchase access &middot; Contact:<br>',
     '      <a href="' + CONTACT_URL + '" target="_blank" rel="noopener noreferrer">' + CONTACT_LABEL + ' &rarr;</a>',
     '    </div>',
-    '',
-    '    <div class="cy-dev-hint">',
-    '      <strong>DEV MODE</strong> &mdash; Email: <strong>' + DEV_EMAIL + '</strong> &middot; Password: <strong>' + DEV_PASSWORD + '</strong>',
-    '    </div>',
-    '',
-    '    <div class="cy-boot" id="cy-boot"></div>',
+
+    '    <div class="mt-boot" id="mt-boot"></div>',
     '  </div>',
     '</div>'
   ].join('\n');
 
-  // ---- BOOT SEQUENCE TEXT ----
+  // ---- BOOT SEQUENCE ----
   var BOOT_LINES = [
-    { text: '<span class="cy-prompt">root@matchestool</span>:~$ init --terminal', delay: 200 },
-    { text: 'Loading kernel modules... <span class="cy-ok">[OK]</span>', delay: 400 },
-    { text: 'Establishing secure connection... <span class="cy-ok">[OK]</span>', delay: 600 },
-    { text: 'Market data feeds... <span class="cy-ok">[ACTIVE]</span>', delay: 800 },
-    { text: 'Awaiting authentication...', delay: 1000 }
+    { text: '<span class="mt-prompt">matchestool@terminal</span>:~$ connect --secure', delay: 150 },
+    { text: 'Initializing market data feeds... <span class="mt-ok">[OK]</span>',       delay: 350 },
+    { text: 'Loading analytics engine... <span class="mt-ok">[OK]</span>',              delay: 550 },
+    { text: 'Syncing tick streams... <span class="mt-info">[ACTIVE]</span>',            delay: 750 },
+    { text: 'Awaiting authentication...',                                                delay: 950 }
   ];
 
-  // ---- MATRIX RAIN ----
+  // ---- MATRIX RAIN (gold tones) ----
   function initMatrixRain() {
-    var canvas = document.getElementById('cy-matrix-canvas');
+    var canvas = document.getElementById('mt-matrix-canvas');
     if (!canvas) return;
-    var ctx = canvas.getContext('2d');
-    var chars = '01アカサタナハマヤラワ0123456789ABCDEF';
-    var fontSize = 14;
+    var ctx    = canvas.getContext('2d');
+    var chars  = '01MATCHESTOOL0123456789ABCDEF▲▼◆●○';
+    var fontSize = 13;
     var columns = 0;
-    var drops = [];
+    var drops   = [];
 
     function resize() {
-      canvas.width = window.innerWidth;
+      canvas.width  = window.innerWidth;
       canvas.height = window.innerHeight;
       columns = Math.floor(canvas.width / fontSize);
-      drops = new Array(columns).fill(1).map(function () { return Math.random() * -100; });
+      drops   = new Array(columns).fill(1).map(function () { return Math.random() * -120; });
     }
     resize();
     window.addEventListener('resize', resize);
 
     function draw() {
-      ctx.fillStyle = 'rgba(3, 6, 13, 0.05)';
+      ctx.fillStyle = 'rgba(2,4,10,0.055)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = '#00f0ff';
       ctx.font = fontSize + 'px monospace';
       for (var i = 0; i < drops.length; i++) {
         var char = chars[Math.floor(Math.random() * chars.length)];
-        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        // Lead character brighter gold, trail dimmer
+        if (drops[i] * fontSize > 0 && drops[i] * fontSize < canvas.height) {
+          ctx.fillStyle = (Math.random() > 0.92) ? '#FCD34D' : '#92600A';
+          ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+        }
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.972) drops[i] = 0;
         drops[i]++;
       }
     }
-    var interval = setInterval(draw, 50);
-
-    return function () { clearInterval(interval); };
+    setInterval(draw, 55);
   }
 
-  // ---- BOOT TEXT ANIMATION ----
+  // ---- BOOT ANIMATION ----
   function playBootSequence() {
-    var bootEl = document.getElementById('cy-boot');
+    var bootEl = document.getElementById('mt-boot');
     if (!bootEl) return;
     bootEl.innerHTML = '';
-    BOOT_LINES.forEach(function (line, i) {
+    BOOT_LINES.forEach(function (line) {
       var div = document.createElement('div');
-      div.className = 'cy-boot-line';
+      div.className = 'mt-boot-line';
       div.innerHTML = line.text;
       div.style.animationDelay = line.delay + 'ms';
       bootEl.appendChild(div);
     });
   }
 
-  // ---- SESSION MANAGEMENT ----
+  // ---- SESSION ----
   function isAuthenticated() {
     try {
-      var raw = sessionStorage.getItem(SESSION_KEY);
+      var raw  = sessionStorage.getItem(SESSION_KEY);
       if (!raw) return false;
       var data = JSON.parse(raw);
-      if (!data || !data.token || !data.expiresAt) return false;
-      return Date.now() < data.expiresAt;
-    } catch (e) {
-      return false;
-    }
+      return data && data.token && data.expiresAt && Date.now() < data.expiresAt;
+    } catch (e) { return false; }
   }
 
   function createSession(user) {
     var session = {
-      token: 'mtx-' + Date.now() + '-' + Math.random().toString(36).slice(2),
-      user: user,
+      token:     'mtx-' + Date.now() + '-' + Math.random().toString(36).slice(2),
+      user:      user,
       expiresAt: Date.now() + (24 * 60 * 60 * 1000)
     };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
-    // Also seed the supabase mock session so the React app picks it up
-    var supabaseSession = {
-      access_token: session.token,
+    // Seed Supabase-compatible mock session so the React app recognises the user
+    var supaSession = {
+      access_token:  session.token,
       refresh_token: 'refresh-' + Date.now(),
-      expires_in: 3600,
-      token_type: 'bearer',
+      expires_in:    3600,
+      token_type:    'bearer',
       user: {
-        id: 'dev-user-001',
-        email: user.email,
-        app_metadata: {},
-        user_metadata: { username: user.username },
-        role: 'authenticated',
-        aud: 'authenticated'
+        id:             'matchestool-user-001',
+        email:          user.email,
+        app_metadata:   {},
+        user_metadata:  { username: user.username },
+        role:           'authenticated',
+        aud:            'authenticated'
       }
     };
-    try {
-      localStorage.setItem('supabase.auth.token', JSON.stringify(supabaseSession));
-    } catch (e) {}
-
+    try { localStorage.setItem('supabase.auth.token', JSON.stringify(supaSession)); } catch (e) {}
     return session;
   }
 
@@ -200,196 +190,132 @@
     try { localStorage.removeItem('supabase.auth.token'); } catch (e) {}
   }
 
-  // ---- AUTH VALIDATION ----
-  function validateCredentials(emailOrUser, password) {
-    var id = (emailOrUser || '').trim().toLowerCase();
-    var pw = password || '';
-    return (
-      (id === DEV_EMAIL || id === DEV_USERNAME) && pw === DEV_PASSWORD
-    );
+  // ---- VALIDATE ----
+  function validateCredentials(id, pw) {
+    var uid = (id || '').trim().toLowerCase();
+    return (uid === DEV_EMAIL || uid === DEV_USERNAME) && pw === DEV_PASSWORD;
   }
 
-  // ---- SHOW/HIDE GATE ----
+  // ---- SHOW / HIDE ----
   function showGate() {
-    var existing = document.getElementById('cy-auth-gate');
-    if (existing) return;
-
+    if (document.getElementById('mt-auth-gate')) return;
     var gate = document.createElement('div');
-    gate.id = 'cy-auth-gate';
+    gate.id  = 'mt-auth-gate';
     gate.innerHTML = GATE_HTML;
     document.body.appendChild(gate);
-
-    // Prevent the React app from receiving events
     gate.addEventListener('click', function (e) { e.stopPropagation(); });
-
     initMatrixRain();
     playBootSequence();
     attachFormHandlers();
-
-    // Focus email field
     setTimeout(function () {
-      var emailInput = document.getElementById('cy-email');
-      if (emailInput) emailInput.focus();
-    }, 300);
+      var el = document.getElementById('mt-email');
+      if (el) el.focus();
+    }, 280);
   }
 
   function hideGate() {
-    var gate = document.getElementById('cy-auth-gate');
-    if (gate) {
-      gate.classList.add('cy-hidden');
-      setTimeout(function () {
-        if (gate.parentNode) gate.parentNode.removeChild(gate);
-      }, 300);
-    }
+    var gate = document.getElementById('mt-auth-gate');
+    if (!gate) return;
+    gate.classList.add('mt-hidden');
+    setTimeout(function () { if (gate.parentNode) gate.parentNode.removeChild(gate); }, 250);
   }
 
   // ---- FORM HANDLERS ----
   function attachFormHandlers() {
-    var form = document.getElementById('cy-login-form');
-    var alertEl = document.getElementById('cy-alert');
-    var alertText = document.getElementById('cy-alert-text');
-    var btn = document.getElementById('cy-submit-btn');
-    var btnText = document.getElementById('cy-btn-text');
-    var emailInput = document.getElementById('cy-email');
-    var passwordInput = document.getElementById('cy-password');
-
+    var form      = document.getElementById('mt-login-form');
+    var alertEl   = document.getElementById('mt-alert');
+    var alertText = document.getElementById('mt-alert-text');
+    var btn       = document.getElementById('mt-submit-btn');
+    var btnText   = document.getElementById('mt-btn-text');
+    var emailEl   = document.getElementById('mt-email');
+    var passEl    = document.getElementById('mt-password');
     if (!form) return;
 
     function showAlert(msg) {
       if (alertText) alertText.textContent = msg;
       if (alertEl) {
         alertEl.classList.remove('show');
-        void alertEl.offsetWidth; // reflow to restart animation
+        void alertEl.offsetWidth;
         alertEl.classList.add('show');
       }
     }
-
-    function hideAlert() {
-      if (alertEl) alertEl.classList.remove('show');
-    }
-
-    function setLoading(loading) {
-      if (loading) {
-        btn.disabled = true;
-        if (btnText) {
-          btnText.innerHTML = '<span class="cy-btn-loading"><span class="cy-spinner"></span> AUTHENTICATING...</span>';
-        }
+    function hideAlert() { if (alertEl) alertEl.classList.remove('show'); }
+    function setLoading(on) {
+      btn.disabled = on;
+      if (on) {
+        btnText.innerHTML = '<span class="mt-btn-loading"><span class="mt-spinner"></span> Authenticating...</span>';
       } else {
-        btn.disabled = false;
-        if (btnText) btnText.textContent = '// INITIATE LOGIN';
+        btnText.innerHTML = 'Initialize Session &#8594;';
       }
     }
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
       hideAlert();
-
-      var emailOrUser = emailInput ? emailInput.value : '';
-      var password = passwordInput ? passwordInput.value : '';
-
-      if (!emailOrUser || !password) {
-        showAlert('All fields required');
-        return;
-      }
-
+      var id = emailEl ? emailEl.value : '';
+      var pw = passEl  ? passEl.value  : '';
+      if (!id || !pw) { showAlert('All fields required'); return; }
       setLoading(true);
-
-      // Simulate network delay for terminal feel
       setTimeout(function () {
-        if (validateCredentials(emailOrUser, password)) {
-          var user = {
-            email: DEV_EMAIL,
-            username: DEV_USERNAME
-          };
-          createSession(user);
-
-          // Show success state
-          if (btnText) {
-            btnText.innerHTML = '<span class="cy-btn-loading"><span class="cy-spinner"></span> ACCESS GRANTED</span>';
-          }
-
+        if (validateCredentials(id, pw)) {
+          createSession({ email: DEV_EMAIL, username: DEV_USERNAME });
+          btnText.innerHTML = '<span class="mt-btn-loading"><span class="mt-spinner"></span> Access Granted</span>';
           setTimeout(function () {
             hideGate();
-            // Try to navigate to /app if the React router is listening
+            // Navigate straight to the main dashboard
             try {
               if (window.history && window.history.pushState) {
                 window.history.pushState({}, '', '/app');
                 window.dispatchEvent(new PopStateEvent('popstate'));
               }
-            } catch (e) {}
-
-            // Fallback: reload to let the app pick up the session
+            } catch (ex) {}
+            // Fallback
             setTimeout(function () {
-              if (window.location.pathname !== '/app') {
-                window.location.href = '/app';
-              }
-            }, 500);
-          }, 800);
+              if (window.location.pathname !== '/app') window.location.href = '/app';
+            }, 400);
+          }, 700);
         } else {
           setLoading(false);
           showAlert('Access denied — invalid credentials');
-          if (passwordInput) {
-            passwordInput.value = '';
-            passwordInput.focus();
-          }
+          if (passEl) { passEl.value = ''; passEl.focus(); }
         }
-      }, 900);
+      }, 800);
     });
 
-    // Hide alert on input
-    if (emailInput) emailInput.addEventListener('input', hideAlert);
-    if (passwordInput) passwordInput.addEventListener('input', hideAlert);
-
-    // Enter key on password triggers submit (native form behavior, but ensure)
-    if (passwordInput) {
-      passwordInput.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          form.dispatchEvent(new Event('submit', { cancelable: true }));
-        }
+    if (emailEl) emailEl.addEventListener('input', hideAlert);
+    if (passEl)  passEl.addEventListener('input',  hideAlert);
+    if (passEl) {
+      passEl.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); form.dispatchEvent(new Event('submit', { cancelable: true })); }
       });
     }
   }
 
-  // ---- LOGOUT SUPPORT ----
-  window.matchestoolLogout = function () {
-    clearSession();
-    showGate();
-  };
+  // ---- LOGOUT ----
+  window.matchestoolLogout = function () { clearSession(); showGate(); };
 
   // ---- INIT ----
   function init() {
     if (isAuthenticated()) {
-      // Already logged in — ensure supabase mock session exists
+      // Refresh the Supabase mock session so the app doesn't think it's expired
       var raw = sessionStorage.getItem(SESSION_KEY);
       if (raw) {
-        try {
-          var data = JSON.parse(raw);
-          if (data.user) createSession(data.user);
-        } catch (e) {}
+        try { var d = JSON.parse(raw); if (d.user) createSession(d.user); } catch (e) {}
       }
       return;
     }
-
-    // Not authenticated — show the gate
-    // Use a small delay to let the DOM settle
-    setTimeout(showGate, 100);
+    setTimeout(showGate, 80);
   }
 
-  // Run on DOMContentLoaded or immediately if already loaded
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
     init();
   }
 
-  // Also check on route changes (in case the React app redirects to /auth)
-  var lastPath = window.location.pathname;
+  // Guard against internal /auth redirects after login
   window.addEventListener('popstate', function () {
-    if (window.location.pathname === '/auth' && !isAuthenticated()) {
-      showGate();
-    }
-    lastPath = window.location.pathname;
+    if (window.location.pathname === '/auth' && !isAuthenticated()) showGate();
   });
 
 })();
