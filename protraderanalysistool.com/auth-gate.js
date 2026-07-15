@@ -159,18 +159,21 @@
   }
 
   function createSession(user) {
+    var token = 'mtx-' + Date.now() + '-' + Math.random().toString(36).slice(2);
     var session = {
-      token:     'mtx-' + Date.now() + '-' + Math.random().toString(36).slice(2),
+      token:     token,
       user:      user,
       expiresAt: Date.now() + (24 * 60 * 60 * 1000)
     };
     sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
 
-    // Seed Supabase-compatible mock session so the React app recognises the user
+    // Supabase v2 reads from localStorage key: sb-{project-ref}-auth-token
+    var expiresAt = Math.floor(Date.now() / 1000) + 3600;
     var supaSession = {
-      access_token:  session.token,
+      access_token:  token,
       refresh_token: 'refresh-' + Date.now(),
       expires_in:    3600,
+      expires_at:    expiresAt,
       token_type:    'bearer',
       user: {
         id:             'matchestool-user-001',
@@ -181,7 +184,12 @@
         aud:            'authenticated'
       }
     };
-    try { localStorage.setItem('supabase.auth.token', JSON.stringify(supaSession)); } catch (e) {}
+    try {
+      // v2 key (project ref: xrfpqifzmsgsvrqyxygb)
+      localStorage.setItem('sb-xrfpqifzmsgsvrqyxygb-auth-token', JSON.stringify(supaSession));
+      // v1 key as fallback
+      localStorage.setItem('supabase.auth.token', JSON.stringify(supaSession));
+    } catch (e) {}
     return session;
   }
 
@@ -262,17 +270,10 @@
           btnText.innerHTML = '<span class="mt-btn-loading"><span class="mt-spinner"></span> Access Granted</span>';
           setTimeout(function () {
             hideGate();
-            // Navigate straight to the main dashboard
-            try {
-              if (window.history && window.history.pushState) {
-                window.history.pushState({}, '', '/app');
-                window.dispatchEvent(new PopStateEvent('popstate'));
-              }
-            } catch (ex) {}
-            // Fallback
-            setTimeout(function () {
-              if (window.location.pathname !== '/app') window.location.href = '/app';
-            }, 400);
+            // Full reload so the Supabase client re-initialises and reads the
+            // session we just wrote to localStorage (pushState won't trigger
+            // a re-init of the already-running client).
+            window.location.href = '/app';
           }, 700);
         } else {
           setLoading(false);

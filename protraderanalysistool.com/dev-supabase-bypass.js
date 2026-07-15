@@ -12,28 +12,56 @@
   var DEV_USER      = { email: 'admin@matchestool.pro', username: 'matchestool' };
   var DEV_PASSWORD  = 'MatchesPro2024';
   var SESSION_KEY   = 'matchestool_session';
+  // Supabase v2 localStorage key (project ref: xrfpqifzmsgsvrqyxygb)
+  var SUPA_KEY      = 'sb-xrfpqifzmsgsvrqyxygb-auth-token';
 
   var DEV_TOKEN   = 'mock-jwt-' + Date.now();
+  var DEV_USER_OBJ = {
+    id:            'matchestool-user-001',
+    email:         DEV_USER.email,
+    app_metadata:  {},
+    user_metadata: { username: DEV_USER.username },
+    role:          'authenticated',
+    aud:           'authenticated',
+  };
   var DEV_SESSION = {
     access_token:  DEV_TOKEN,
     refresh_token: 'mock-refresh-' + Date.now(),
     expires_in:    3600,
+    expires_at:    Math.floor(Date.now() / 1000) + 3600,
     token_type:    'bearer',
-    user: {
-      id:            'matchestool-user-001',
-      email:         DEV_USER.email,
-      app_metadata:  {},
-      user_metadata: { username: DEV_USER.username },
-      role:          'authenticated',
-      aud:           'authenticated',
-    },
+    user:          DEV_USER_OBJ,
   };
+
+  // Helper: check if the outer auth gate has an active session
+  function isOuterAuthenticated() {
+    try {
+      var raw  = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return false;
+      var data = JSON.parse(raw);
+      return !!(data && data.token && data.expiresAt && Date.now() < data.expiresAt);
+    } catch (e) { return false; }
+  }
+
+  // If outer session is active, ensure the Supabase v2 localStorage key is seeded
+  // so getSession() resolves immediately without a network call.
+  function ensureSupabaseSession() {
+    if (!isOuterAuthenticated()) return;
+    try {
+      var existing = localStorage.getItem(SUPA_KEY);
+      if (!existing) {
+        localStorage.setItem(SUPA_KEY, JSON.stringify(DEV_SESSION));
+      }
+    } catch (e) {}
+  }
+  ensureSupabaseSession();
 
   // ---- Intercept Supabase fetch calls ----
   var origFetch = window.fetch.bind(window);
   window.fetch = function (input, init) {
     var url = typeof input === 'string' ? input : (input && input.url) || '';
 
+    // POST /auth/v1/token — sign in
     if (url.indexOf('/auth/v1/token') !== -1 || url.indexOf('/token?grant_type=password') !== -1) {
       var body = {};
       try { body = JSON.parse((init && init.body) || '{}'); } catch (e) {
@@ -43,18 +71,26 @@
       var id = body.email || body.username || '';
       var pw = body.password || '';
       if ((id === DEV_USER.email || id === DEV_USER.username) && pw === DEV_PASSWORD) {
-        return Promise.resolve(new Response(JSON.stringify({
-          access_token:  DEV_SESSION.access_token,
-          refresh_token: DEV_SESSION.refresh_token,
-          expires_in:    DEV_SESSION.expires_in,
-          token_type:    DEV_SESSION.token_type,
-          user:          DEV_SESSION.user,
-        }), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+        return Promise.resolve(new Response(JSON.stringify(DEV_SESSION),
+          { status: 200, headers: { 'Content-Type': 'application/json' } }));
       }
       return Promise.resolve(new Response(JSON.stringify({ message: 'Invalid login credentials', status: 400 }), {
         status: 400, headers: { 'Content-Type': 'application/json' }
       }));
     }
+
+    // GET /auth/v1/user — session validation (Supabase v2 calls this on getSession)
+    if (url.indexOf('/auth/v1/user') !== -1 && isOuterAuthenticated()) {
+      return Promise.resolve(new Response(JSON.stringify(DEV_USER_OBJ),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    }
+
+    // POST /auth/v1/token?grant_type=refresh_token — token refresh
+    if (url.indexOf('grant_type=refresh_token') !== -1 && isOuterAuthenticated()) {
+      return Promise.resolve(new Response(JSON.stringify(DEV_SESSION),
+        { status: 200, headers: { 'Content-Type': 'application/json' } }));
+    }
+
     return origFetch(input, init);
   };
 
