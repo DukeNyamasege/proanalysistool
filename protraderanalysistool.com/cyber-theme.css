@@ -187,6 +187,24 @@
     inset 0 1px 0 rgba(245,158,11,0.06);
 }
 
+/* Authentication first-paint guard. The class is applied inline in <head>
+   before the application bundle can render, eliminating landing-page flashes. */
+html.mt-auth-pending,
+html.mt-auth-locked {
+  background: #050914 !important;
+}
+
+html.mt-auth-pending body,
+html.mt-auth-locked body {
+  background: #050914 !important;
+}
+
+html.mt-auth-pending body > #root,
+html.mt-auth-locked body > #root {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .mt-card-eyebrow { color:#38bdf8; font:700 .62rem/1 var(--mt-font-display); letter-spacing:.18em; text-transform:uppercase; margin-bottom:.65rem; }
 
 /* Gold top accent bar */
@@ -506,6 +524,12 @@
 /* ---- HIDDEN STATE ---- */
 
 #mt-auth-gate.mt-hidden { display: none !important; }
+
+/* Prevent the mounted application below the auth gate from stealing pointer focus. */
+body:has(#mt-auth-gate:not(.mt-hidden)) > #root {
+  pointer-events: none !important;
+  user-select: none !important;
+}
 
 /* ================================================================
    APP-LEVEL OVERRIDES (applied once auth gate is dismissed)

@@ -209,17 +209,15 @@
   // ---- SHOW / HIDE ----
   function showGate() {
     if (document.getElementById('mt-auth-gate')) return;
+    document.documentElement.classList.remove('mt-auth-pending');
+    document.documentElement.classList.add('mt-auth-locked');
     var gate = document.createElement('div');
     gate.id  = 'mt-auth-gate';
     gate.innerHTML = GATE_HTML;
     document.body.appendChild(gate);
     gate.addEventListener('click', function (e) { e.stopPropagation(); });
-    // Keep the app underneath the gate from reacting to typing, mobile IME,
-    // password-manager autofill, or keyboard shortcuts intended for this form.
-    ['keydown', 'keyup', 'keypress', 'beforeinput', 'input', 'compositionstart', 'compositionupdate', 'compositionend'].forEach(function (type) {
-      gate.addEventListener(type, function (e) { e.stopPropagation(); });
-    });
     attachFormHandlers();
+    attachFocusGuard(gate);
     setTimeout(function () {
       var el = document.getElementById('mt-email');
       // Do not steal focus if a fast mobile user has already selected a field.
@@ -230,8 +228,57 @@
   function hideGate() {
     var gate = document.getElementById('mt-auth-gate');
     if (!gate) return;
+    if (gate._focusGuardCleanup) gate._focusGuardCleanup();
     gate.classList.add('mt-hidden');
     setTimeout(function () { if (gate.parentNode) gate.parentNode.removeChild(gate); }, 250);
+  }
+
+  // Keep the visible login fields usable even if the application mounted below
+  // the gate tries to focus one of its own controls after a delayed render.
+  function attachFocusGuard(gate) {
+    var email = document.getElementById('mt-email');
+    var password = document.getElementById('mt-password');
+    var lastField = email;
+    var userEngaged = false;
+
+    function remember(e) {
+      lastField = e.currentTarget;
+      userEngaged = true;
+      lastField.disabled = false;
+      lastField.readOnly = false;
+    }
+    if (email) email.addEventListener('focus', remember);
+    if (password) password.addEventListener('focus', remember);
+
+    function reclaimFocus(e) {
+      if (!gate.isConnected || gate.contains(e.target) || !userEngaged) return;
+      setTimeout(function () {
+        if (gate.isConnected && lastField && document.activeElement !== lastField) {
+          lastField.disabled = false;
+          lastField.readOnly = false;
+          lastField.focus({ preventScroll: true });
+        }
+      }, 0);
+    }
+    document.addEventListener('focusin', reclaimFocus, true);
+
+    var guard = setInterval(function () {
+      if (!gate.isConnected) return;
+      [email, password].forEach(function (field) {
+        if (!field) return;
+        field.disabled = false;
+        field.readOnly = false;
+        field.removeAttribute('aria-disabled');
+      });
+      if (userEngaged && (document.activeElement === document.body || document.activeElement === document.documentElement)) {
+        lastField.focus({ preventScroll: true });
+      }
+    }, 400);
+
+    gate._focusGuardCleanup = function () {
+      clearInterval(guard);
+      document.removeEventListener('focusin', reclaimFocus, true);
+    };
   }
 
   // ---- FORM HANDLERS ----
@@ -301,6 +348,7 @@
   // ---- INIT ----
   function init() {
     if (isAuthenticated()) {
+      document.documentElement.classList.remove('mt-auth-pending', 'mt-auth-locked');
       // Refresh the Supabase mock session so the app doesn't think it's expired
       var raw = sessionStorage.getItem(SESSION_KEY);
       if (raw) {
@@ -308,7 +356,7 @@
       }
       return;
     }
-    setTimeout(showGate, 80);
+    showGate();
   }
 
   if (document.readyState === 'loading') {
