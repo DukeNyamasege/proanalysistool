@@ -8,7 +8,8 @@
   var WATCHLIST = ['R_10','R_25','R_50','R_75','R_100','1HZ10V','1HZ25V','1HZ50V','1HZ75V','1HZ100V'];
   var state = {
     ws: null, markets: [], data: {}, req: {}, reqId: 10, connected: false,
-    scanned: 0, signal: null, signalTimer: null, outcomes: [], reconnect: null, displayReady: false
+    scanned: 0, signal: null, signalTimer: null, outcomes: [], reconnect: null, displayReady: false,
+    lastSignalSymbol: null, consecutiveSignals: 0, totalWins: 0, totalLosses: 0
   };
 
   function el(id) { return document.getElementById(id); }
@@ -41,6 +42,7 @@
             '</div>' +
           '</article>' +
         '</section>' +
+        '<section class="dm-results" id="dm-results"><div class="dm-result-totals"><article><span>Total wins</span><strong id="dm-total-wins">0</strong><small>Match found</small></article><article><span>Total losses</span><strong id="dm-total-losses">0</strong><small>Digit not found</small></article><article><span>Settled signals</span><strong id="dm-total-signals">0</strong><small id="dm-result-rate">Waiting for first result</small></article></div><div class="dm-result-list" id="dm-outcomes"><div class="dm-empty-results">Settled signal results will appear here.</div></div></section>' +
       '</main></div>';
   }
 
@@ -124,7 +126,11 @@
   function ranked() { return Object.keys(state.data).map(function (k) { return analyse(state.data[k]); }).filter(function (x) { return x.sample >= 100; }).sort(function (a,b) { return b.frequency-a.frequency || b.sample-a.sample; }); }
   function rank() {
     if (state.active) return;
-    var rows = ranked(); state.signal = rows[0] || null; if(state.displayReady)showSignal(state.signal);
+    var rows = ranked(), selected = rows[0] || null;
+    if (selected && selected.entry.market.symbol===state.lastSignalSymbol && state.consecutiveSignals>=3) {
+      selected = rows.find(function(row){return row.entry.market.symbol!==state.lastSignalSymbol;}) || rows[1] || selected;
+    }
+    state.signal = selected; if(state.displayReady)showSignal(state.signal);
   }
 
   function showSignal(signal) {
@@ -157,6 +163,8 @@
 
   function activateSignal() {
     if (!state.signal || state.active) return; var s=state.signal;
+    if (s.entry.market.symbol===state.lastSignalSymbol) state.consecutiveSignals++;
+    else { state.lastSignalSymbol=s.entry.market.symbol; state.consecutiveSignals=1; }
     state.active={symbol:s.entry.market.symbol,market:marketName(s.entry.market),digit:s.digit,frequency:s.frequency,started:Date.now(),expires:Date.now()+SIGNAL_TTL*1000,digits:[],matched:false};
     el('dm-activate').disabled=true; el('dm-active-trade').hidden=false; el('dm-active-digit').textContent=s.digit; el('dm-active-market').textContent=marketName(s.entry.market); el('dm-signal-state').textContent='LOCKED · 30S';
     el('dm-live-digits').innerHTML='<span>Waiting for live ticks…</span>'; el('dm-match-status').textContent='WAITING FOR MATCH'; el('dm-match-status').classList.remove('is-win');
@@ -166,15 +174,19 @@
   function finishSignal(result, actual, epoch) {
     if(!state.active)return; var a=state.active; clearInterval(state.signalTimer);
     state.outcomes.unshift({result:result,market:a.market,symbol:a.symbol,target:a.digit,actual:actual,time:nowTime(epoch),frequency:a.frequency}); state.outcomes=state.outcomes.slice(0,20); state.active=null;
+    if(result==='WIN')state.totalWins++;else if(result==='LOSS')state.totalLosses++;
     el('dm-activate').disabled=false; el('dm-signal-state').textContent=result; renderOutcomes();
     el('dm-active-trade').classList.add(result==='WIN'?'is-settled-win':'is-settled-loss');
     setTimeout(function(){ if(el('dm-active-trade')){el('dm-active-trade').hidden=true;el('dm-active-trade').classList.remove('is-settled-win','is-settled-loss');} if(el('dm-signal-state'))el('dm-signal-state').textContent='ANALYSING'; state.displayReady=false; showSignal(null); analysisStage('Refreshing market analysis','Reviewing the latest rolling tick samples…',55,2); setTimeout(function(){rank();analysisStage('Locking the next signal','Freezing the strongest current setup…',96,3);setTimeout(function(){state.displayReady=true;showSignal(state.signal);activateSignal();},700);},900); },2200);
   }
 
   function renderOutcomes() {
-    var wins=state.outcomes.filter(function(x){return x.result==='WIN';}).length, losses=state.outcomes.filter(function(x){return x.result==='LOSS';}).length;
+    var wins=state.totalWins, losses=state.totalLosses;
+    var totalWins=el('dm-total-wins'),totalLosses=el('dm-total-losses'),totalSignals=el('dm-total-signals'),resultRate=el('dm-result-rate');
+    if(totalWins)totalWins.textContent=wins;if(totalLosses)totalLosses.textContent=losses;if(totalSignals)totalSignals.textContent=wins+losses;
+    if(resultRate)resultRate.textContent=(wins+losses)?Math.round(wins/(wins+losses)*100)+'% win rate':'Waiting for first result';
     var record=el('dm-record'),rate=el('dm-win-rate'); if(record)record.textContent=wins+'W · '+losses+'L'; if(rate)rate.textContent=(wins+losses)?Math.round(wins/(wins+losses)*100)+'% match rate':'No settled outcomes yet';
-    var list=el('dm-outcomes'); if(list) list.innerHTML=state.outcomes.length?state.outcomes.map(function(o){return '<div class="dm-outcome"><span class="'+o.result.toLowerCase()+'">'+o.result+'</span><div><strong>'+esc(o.market)+'</strong><small>Target '+o.target+' · Actual '+(o.actual==null?'—':o.actual)+' · '+o.time+'</small></div></div>';}).join(''):'<div class="dm-empty-journal">Completed 1-tick signals will appear here.</div>';
+    var list=el('dm-outcomes'); if(list) list.innerHTML=state.outcomes.length?state.outcomes.map(function(o){return '<div class="dm-result-item"><span class="dm-result-icon '+o.result.toLowerCase()+'">'+(o.result==='WIN'?'✓':'×')+'</span><div><strong>'+esc(o.market)+'</strong><small>Match digit '+o.target+' · '+o.time+'</small></div><b class="'+o.result.toLowerCase()+'">'+(o.result==='WIN'?'MATCH FOUND':'NOT FOUND')+'</b></div>';}).join(''):'<div class="dm-empty-results">Settled signal results will appear here.</div>';
   }
 
   window.addEventListener('load', function () { setTimeout(mount, 120); });

@@ -590,4 +590,6 @@ button, [role="button"] { font-family: var(--mt-font-mono) !important; }
   .mt-auth-card  { padding: 1.4rem; }
   .mt-brand-mark { font-size: 1.45rem; }
   .mt-pricing-amount { font-size: 2rem; }
+  .mt-input { font-size: 16px !important; min-height: 48px; }
+  .mt-btn { min-height: 48px; touch-action: manipulation; }
 }

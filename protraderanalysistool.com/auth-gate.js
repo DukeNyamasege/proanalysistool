@@ -50,11 +50,11 @@
     '      <span id="mt-alert-text">Invalid credentials</span>',
     '    </div>',
 
-    '    <form class="mt-form" id="mt-login-form" autocomplete="off">',
+    '    <form class="mt-form" id="mt-login-form" autocomplete="on">',
     '      <div class="mt-field">',
     '        <label class="mt-label" for="mt-email">Username</label>',
     '        <div class="mt-input-wrap">',
-    '          <input class="mt-input" type="text" id="mt-email" name="email" placeholder="" autocomplete="username" spellcheck="false" />',
+    '          <input class="mt-input" type="text" id="mt-email" name="username" placeholder="" autocomplete="username" autocapitalize="none" autocorrect="off" inputmode="text" spellcheck="false" />',
     '          <span class="mt-input-icon">@</span>',
     '        </div>',
     '      </div>',
@@ -214,10 +214,16 @@
     gate.innerHTML = GATE_HTML;
     document.body.appendChild(gate);
     gate.addEventListener('click', function (e) { e.stopPropagation(); });
+    // Keep the app underneath the gate from reacting to typing, mobile IME,
+    // password-manager autofill, or keyboard shortcuts intended for this form.
+    ['keydown', 'keyup', 'keypress', 'beforeinput', 'input', 'compositionstart', 'compositionupdate', 'compositionend'].forEach(function (type) {
+      gate.addEventListener(type, function (e) { e.stopPropagation(); });
+    });
     attachFormHandlers();
     setTimeout(function () {
       var el = document.getElementById('mt-email');
-      if (el) el.focus();
+      // Do not steal focus if a fast mobile user has already selected a field.
+      if (el && !gate.contains(document.activeElement)) el.focus();
     }, 280);
   }
 
@@ -285,11 +291,8 @@
 
     if (emailEl) emailEl.addEventListener('input', hideAlert);
     if (passEl)  passEl.addEventListener('input',  hideAlert);
-    if (passEl) {
-      passEl.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter') { e.preventDefault(); form.dispatchEvent(new Event('submit', { cancelable: true })); }
-      });
-    }
+    // Native form submission handles Enter reliably across desktop keyboards,
+    // mobile IMEs, accessibility keyboards, and password managers.
   }
 
   // ---- LOGOUT ----
