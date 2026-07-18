@@ -48,6 +48,7 @@
 
   function mount() {
     if (location.pathname !== '/app' || document.getElementById('dm-app-root')) return;
+    document.documentElement.classList.add('dm-strategy-page');
     document.body.classList.add('dm-strategy-app');
     var root = document.createElement('div'); root.id = 'dm-app-root'; root.innerHTML = template(); document.body.appendChild(root);
     el('dm-logout').onclick = function () { if (window.matchestoolLogout) window.matchestoolLogout(); location.href = '/auth'; };

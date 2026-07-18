@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Matchestool.pro">
+  <defs>
+    <linearGradient id="bg" x1="64" y1="40" x2="448" y2="472" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#4f46e5"/>
+    </linearGradient>
+    <linearGradient id="mark" x1="154" y1="155" x2="358" y2="357" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#dbeafe"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="#050914"/>
+  <rect x="28" y="28" width="456" height="456" rx="94" fill="url(#bg)"/>
+  <path d="M132 350V162h48l76 92 76-92h48v188h-54V244l-70 83-70-83v106h-54Z" fill="url(#mark)"/>
+  <circle cx="404" cy="108" r="18" fill="#67e8f9"/>
+</svg>
