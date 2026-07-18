@@ -13,6 +13,7 @@
   var CONTACT_URL   = 'https://wa.me/254722713111';
   var CONTACT_LABEL = '0722 713 111';
   var SESSION_KEY   = 'matchestool_session';
+  var AUTH_LOCK_TIMER = null;
   // A fresh, non-semantic field name on every page load prevents the public
   // origin from being learned as a reusable username/password form.
   var FIELD_NONCE   = Math.random().toString(36).slice(2, 10);
@@ -209,9 +210,80 @@
     return (uid === DEV_EMAIL || uid === DEV_USERNAME) && pw === DEV_PASSWORD;
   }
 
+  function getAuthFields() {
+    return {
+      gate:  document.getElementById('mt-auth-gate'),
+      form:  document.getElementById('mt-login-form'),
+      email: document.getElementById('mt-email'),
+      pass:  document.getElementById('mt-password'),
+      btn:   document.getElementById('mt-submit-btn')
+    };
+  }
+
+  function showSystemAlert(msg) {
+    var alertEl = document.getElementById('mt-alert');
+    var alertText = document.getElementById('mt-alert-text');
+    if (alertText) alertText.textContent = msg;
+    if (alertEl) {
+      alertEl.classList.remove('show');
+      void alertEl.offsetWidth;
+      alertEl.classList.add('show');
+    }
+  }
+
+  function unlockAuthSurface() {
+    var fields = getAuthFields();
+    if (!fields.gate) return;
+
+    document.documentElement.classList.remove('mt-auth-pending');
+    document.documentElement.classList.add('mt-auth-locked');
+
+    if (document.body) {
+      if (document.body.style.pointerEvents === 'none') {
+        document.body.style.pointerEvents = 'auto';
+      }
+      document.body.removeAttribute('data-scroll-locked');
+      document.body.classList.add('mt-auth-body-unlocked');
+    }
+
+    fields.gate.removeAttribute('inert');
+    fields.gate.removeAttribute('aria-hidden');
+    fields.gate.style.pointerEvents = 'auto';
+
+    [fields.form, fields.email, fields.pass, fields.btn].forEach(function (el) {
+      if (!el) return;
+      el.removeAttribute('inert');
+      el.removeAttribute('aria-hidden');
+      if (el !== fields.btn) {
+        el.disabled = false;
+        el.readOnly = false;
+      }
+      el.style.pointerEvents = 'auto';
+    });
+  }
+
+  function startAuthLockGuard() {
+    unlockAuthSurface();
+    if (AUTH_LOCK_TIMER) window.clearInterval(AUTH_LOCK_TIMER);
+    AUTH_LOCK_TIMER = window.setInterval(unlockAuthSurface, 250);
+  }
+
+  function stopAuthLockGuard() {
+    if (AUTH_LOCK_TIMER) {
+      window.clearInterval(AUTH_LOCK_TIMER);
+      AUTH_LOCK_TIMER = null;
+    }
+    if (document.body) {
+      document.body.classList.remove('mt-auth-body-unlocked');
+    }
+  }
+
   // ---- SHOW / HIDE ----
   function showGate() {
-    if (document.getElementById('mt-auth-gate')) return;
+    if (document.getElementById('mt-auth-gate')) {
+      startAuthLockGuard();
+      return;
+    }
     document.documentElement.classList.remove('mt-auth-pending');
     document.documentElement.classList.add('mt-auth-locked');
     var gate = document.createElement('div');
@@ -226,11 +298,13 @@
       gate.addEventListener(eventName, function (e) { e.stopPropagation(); });
     });
     attachFormHandlers();
+    startAuthLockGuard();
   }
 
   function hideGate() {
     var gate = document.getElementById('mt-auth-gate');
     if (!gate) return;
+    stopAuthLockGuard();
     gate.classList.add('mt-hidden');
     setTimeout(function () { if (gate.parentNode) gate.parentNode.removeChild(gate); }, 250);
   }
@@ -266,12 +340,18 @@
 
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      unlockAuthSurface();
       hideAlert();
       var id = emailEl ? emailEl.value : '';
       var pw = passEl  ? passEl.value  : '';
-      if (!id || !pw) { showAlert('All fields required'); return; }
+      if (!emailEl || !passEl || !btn || !btnText) {
+        showSystemAlert('Login form error. Please refresh and try again.');
+        return;
+      }
+      if (!id || !pw) { showAlert('Enter your username and access key.'); return; }
       setLoading(true);
       setTimeout(function () {
+        unlockAuthSurface();
         if (validateCredentials(id, pw)) {
           createSession({ email: DEV_EMAIL, username: DEV_USERNAME });
           btnText.innerHTML = '<span class="mt-btn-loading"><span class="mt-spinner"></span> Access Granted</span>';
@@ -284,7 +364,7 @@
           }, 700);
         } else {
           setLoading(false);
-          showAlert('Access denied — invalid credentials');
+          showAlert('Access denied - invalid username or access key.');
           if (passEl) { passEl.value = ''; passEl.focus(); }
         }
       }, 800);

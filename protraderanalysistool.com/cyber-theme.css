@@ -38,6 +38,7 @@
   position: fixed !important;
   inset: 0 !important;
   z-index: 99999 !important;
+  pointer-events: auto !important;
   background: #050914 !important;
   font-family: var(--mt-font-mono) !important;
   color: var(--mt-text) !important;
@@ -204,12 +205,36 @@ html.mt-auth-locked {
 html.mt-auth-pending body,
 html.mt-auth-locked body {
   background: #050914 !important;
+  pointer-events: auto !important;
 }
 
 html.mt-auth-pending body > #root,
 html.mt-auth-locked body > #root {
   visibility: hidden !important;
   pointer-events: none !important;
+}
+
+body.mt-auth-body-unlocked {
+  pointer-events: auto !important;
+}
+
+html.mt-auth-locked body > :not(#mt-auth-gate):not(#root):not(script):not(style):not(link),
+html.mt-auth-pending body > :not(#mt-auth-gate):not(#root):not(script):not(style):not(link) {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+#mt-auth-gate,
+#mt-auth-gate .mt-auth-container,
+#mt-auth-gate .mt-auth-card,
+#mt-auth-gate .mt-form,
+#mt-auth-gate .mt-field,
+#mt-auth-gate .mt-input-wrap,
+#mt-auth-gate input,
+#mt-auth-gate button,
+#mt-auth-gate a {
+  pointer-events: auto !important;
 }
 
 .mt-card-eyebrow { color:#38bdf8; font:700 .62rem/1 var(--mt-font-display); letter-spacing:.18em; text-transform:uppercase; margin-bottom:.65rem; }
