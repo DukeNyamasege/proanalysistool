@@ -10,13 +10,12 @@
   var DEV_EMAIL    = 'admin@matchestool.pro';
   var DEV_USERNAME = 'matchestool';
   var DEV_PASSWORD = 'MatchesPro2024';
-  var CONTACT_URL   = 'https://t.me/matchestool_pro';
-  var CONTACT_LABEL = '@matchestool_pro';
+  var CONTACT_URL   = 'https://wa.me/254722713111';
+  var CONTACT_LABEL = '0722 713 111';
   var SESSION_KEY   = 'matchestool_session';
 
   // ---- HTML TEMPLATE ----
   var GATE_HTML = [
-    '<canvas id="mt-matrix-canvas"></canvas>',
     '<div class="mt-auth-container">',
 
     '  <div class="mt-brand">',
@@ -24,7 +23,7 @@
     '      <span class="mt-brand-arrow">▶</span>',
     '      MATCHESTOOL.PRO',
     '    </div>',
-    '    <div class="mt-brand-tagline">Real-Time Market Intelligence Terminal</div>',
+    '    <div class="mt-brand-tagline">Professional Market Intelligence</div>',
     '    <div class="mt-brand-status">',
     '      <span class="mt-status-dot"></span>',
     '      <span>Feeds Active</span>',
@@ -41,8 +40,9 @@
     '    <span class="mt-corner br"></span>',
 
     '    <div class="mt-card-header">',
-    '      <div class="mt-card-title">Access Terminal</div>',
-    '      <div class="mt-card-subtitle">Enter your credentials to initialize session</div>',
+    '      <div class="mt-card-eyebrow">Secure client portal</div>',
+    '      <div class="mt-card-title">Welcome back</div>',
+    '      <div class="mt-card-subtitle">Sign in to continue to your analytics workspace.</div>',
     '    </div>',
 
     '    <div class="mt-alert" id="mt-alert">',
@@ -52,9 +52,9 @@
 
     '    <form class="mt-form" id="mt-login-form" autocomplete="off">',
     '      <div class="mt-field">',
-    '        <label class="mt-label" for="mt-email">Email / Username</label>',
+    '        <label class="mt-label" for="mt-email">Username</label>',
     '        <div class="mt-input-wrap">',
-    '          <input class="mt-input" type="text" id="mt-email" name="email" placeholder="user@matchestool.pro" autocomplete="off" spellcheck="false" />',
+    '          <input class="mt-input" type="text" id="mt-email" name="email" placeholder="" autocomplete="username" spellcheck="false" />',
     '          <span class="mt-input-icon">@</span>',
     '        </div>',
     '      </div>',
@@ -62,13 +62,13 @@
     '      <div class="mt-field">',
     '        <label class="mt-label" for="mt-password">Access Key</label>',
     '        <div class="mt-input-wrap">',
-    '          <input class="mt-input" type="password" id="mt-password" name="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;" autocomplete="off" spellcheck="false" />',
+    '          <input class="mt-input" type="password" id="mt-password" name="password" placeholder="" autocomplete="current-password" spellcheck="false" />',
     '          <span class="mt-input-icon">&#8918;</span>',
     '        </div>',
     '      </div>',
 
     '      <button type="submit" class="mt-btn" id="mt-submit-btn">',
-    '        <span id="mt-btn-text">Initialize Session &#8594;</span>',
+    '        <span id="mt-btn-text">Sign in securely &#8594;</span>',
     '      </button>',
     '    </form>',
 
@@ -79,11 +79,13 @@
     '    </div>',
 
     '    <div class="mt-contact">',
-    '      Purchase access &middot; Contact:<br>',
-    '      <a href="' + CONTACT_URL + '" target="_blank" rel="noopener noreferrer">' + CONTACT_LABEL + ' &rarr;</a>',
+    '      <span>Need access or assistance?</span>',
+    '      <a href="' + CONTACT_URL + '" target="_blank" rel="noopener noreferrer" aria-label="Contact us on WhatsApp">',
+    '        <svg viewBox="0 0 32 32" aria-hidden="true"><path fill="currentColor" d="M16 3A12.8 12.8 0 0 0 5.1 22.5L3.4 29l6.7-1.7A12.9 12.9 0 1 0 16 3Zm0 23.4c-2 0-3.9-.5-5.5-1.5l-.4-.2-4 .9 1-3.8-.3-.4A10.3 10.3 0 1 1 16 26.4Zm5.7-7.7c-.3-.2-1.9-.9-2.2-1-.3-.1-.5-.2-.7.2l-1 1.2c-.2.2-.4.2-.7.1-2-.9-3.4-2.5-4.3-4.4-.2-.4.2-.6.5-1 .1-.2.3-.4.4-.6.1-.2.1-.4 0-.6l-1-2.4c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.4-1.2 1.2-1.2 2.9 0 1.7 1.3 3.4 1.4 3.6.2.2 2.5 3.8 6 5.3 3.6 1.6 3.6 1.1 4.2 1 .7 0 2.1-.9 2.4-1.7.3-.9.3-1.6.2-1.7-.2-.1-.5-.2-.8-.4Z"/></svg>',
+    '        <span><strong>Contact us on WhatsApp</strong><small>' + CONTACT_LABEL + '</small></span>',
+    '      </a>',
     '    </div>',
 
-    '    <div class="mt-boot" id="mt-boot"></div>',
     '  </div>',
     '</div>'
   ].join('\n');
@@ -212,8 +214,6 @@
     gate.innerHTML = GATE_HTML;
     document.body.appendChild(gate);
     gate.addEventListener('click', function (e) { e.stopPropagation(); });
-    initMatrixRain();
-    playBootSequence();
     attachFormHandlers();
     setTimeout(function () {
       var el = document.getElementById('mt-email');
@@ -253,7 +253,7 @@
       if (on) {
         btnText.innerHTML = '<span class="mt-btn-loading"><span class="mt-spinner"></span> Authenticating...</span>';
       } else {
-        btnText.innerHTML = 'Initialize Session &#8594;';
+        btnText.innerHTML = 'Sign in securely &#8594;';
       }
     }
 
