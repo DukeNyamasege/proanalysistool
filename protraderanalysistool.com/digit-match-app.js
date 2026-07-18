@@ -155,18 +155,18 @@
   function observeDigit(digit, epoch) {
     if (!state.active) return;
     state.active.digits.push({digit:digit,epoch:epoch});
-    if (digit === state.active.digit) state.active.matched = true;
+    if (digit === state.active.digit) { state.active.matched = true; state.active.matchCount++; }
     var stream = el('dm-live-digits');
     if (stream) stream.innerHTML = state.active.digits.slice(-16).map(function (item) { return '<b class="'+(item.digit===state.active.digit?'is-match':'')+'">'+item.digit+'</b>'; }).join('');
     var status = el('dm-match-status');
-    if (status && state.active.matched) { status.textContent='MATCH FOUND'; status.classList.add('is-win'); }
+    if (status && state.active.matched) { status.textContent='MATCH FOUND × '+state.active.matchCount; status.classList.add('is-win'); }
   }
 
   function activateSignal() {
     if (!state.signal || state.active) return; var s=state.signal;
     if (s.entry.market.symbol===state.lastSignalSymbol) state.consecutiveSignals++;
     else { state.lastSignalSymbol=s.entry.market.symbol; state.consecutiveSignals=1; }
-    state.active={symbol:s.entry.market.symbol,market:marketName(s.entry.market),digit:s.digit,frequency:s.frequency,started:Date.now(),expires:Date.now()+SIGNAL_TTL*1000,digits:[],matched:false};
+    state.active={symbol:s.entry.market.symbol,market:marketName(s.entry.market),digit:s.digit,frequency:s.frequency,started:Date.now(),expires:Date.now()+SIGNAL_TTL*1000,digits:[],matched:false,matchCount:0};
     el('dm-activate').disabled=true; el('dm-active-trade').hidden=false; el('dm-active-digit').textContent=s.digit; el('dm-active-market').textContent=marketName(s.entry.market); el('dm-signal-state').textContent='LOCKED · 30S';
     el('dm-live-digits').innerHTML='<span>Waiting for live ticks…</span>'; el('dm-match-status').textContent='WAITING FOR MATCH'; el('dm-match-status').classList.remove('is-win');
     clearInterval(state.signalTimer); state.signalTimer=setInterval(function(){ var left=Math.max(0,Math.ceil((state.active.expires-Date.now())/1000)); el('dm-countdown').textContent=left; if(left<=0) finishSignal(state.active.matched?'WIN':'LOSS',state.active.digits.length?state.active.digits[state.active.digits.length-1].digit:null,Date.now()/1000); },250);
@@ -174,7 +174,7 @@
 
   function finishSignal(result, actual, epoch) {
     if(!state.active)return; var a=state.active; clearInterval(state.signalTimer);
-    state.outcomes.unshift({result:result,market:a.market,symbol:a.symbol,target:a.digit,actual:actual,time:nowTime(epoch),frequency:a.frequency}); state.outcomes=state.outcomes.slice(0,20); state.active=null;
+    state.outcomes.unshift({result:result,market:a.market,symbol:a.symbol,target:a.digit,actual:actual,time:nowTime(epoch),frequency:a.frequency,matchCount:a.matchCount}); state.outcomes=state.outcomes.slice(0,20); state.active=null;
     if(result==='WIN')state.totalWins++;else if(result==='LOSS')state.totalLosses++;
     el('dm-activate').disabled=false; el('dm-signal-state').textContent=result; renderOutcomes();
     el('dm-active-trade').classList.add(result==='WIN'?'is-settled-win':'is-settled-loss');
@@ -187,7 +187,7 @@
     if(totalWins)totalWins.textContent=wins;if(totalLosses)totalLosses.textContent=losses;if(totalSignals)totalSignals.textContent=wins+losses;
     if(resultRate)resultRate.textContent=(wins+losses)?Math.round(wins/(wins+losses)*100)+'% win rate':'Waiting for first result';
     var record=el('dm-record'),rate=el('dm-win-rate'); if(record)record.textContent=wins+'W · '+losses+'L'; if(rate)rate.textContent=(wins+losses)?Math.round(wins/(wins+losses)*100)+'% match rate':'No settled outcomes yet';
-    var list=el('dm-outcomes'); if(list) list.innerHTML=state.outcomes.length?state.outcomes.map(function(o){return '<div class="dm-result-item"><span class="dm-result-icon '+o.result.toLowerCase()+'">'+(o.result==='WIN'?'✓':'×')+'</span><div><strong>'+esc(o.market)+'</strong><small>Match digit '+o.target+' · '+o.time+'</small></div><b class="'+o.result.toLowerCase()+'">'+(o.result==='WIN'?'MATCH FOUND':'NOT FOUND')+'</b></div>';}).join(''):'<div class="dm-empty-results">Settled signal results will appear here.</div>';
+    var list=el('dm-outcomes'); if(list) list.innerHTML=state.outcomes.length?state.outcomes.map(function(o){var count=Number(o.matchCount||0);return '<div class="dm-result-item"><span class="dm-result-icon '+o.result.toLowerCase()+'">'+(o.result==='WIN'?'✓':'×')+'</span><div><strong>'+esc(o.market)+'</strong><small>Prediction '+o.target+' appeared '+count+' '+(count===1?'time':'times')+' within 30 seconds · '+o.time+'</small></div><b class="'+o.result.toLowerCase()+'">'+(o.result==='WIN'?'MATCH FOUND':'NOT FOUND')+'</b></div>';}).join(''):'<div class="dm-empty-results">Settled signal results will appear here.</div>';
   }
 
   window.addEventListener('load', function () { setTimeout(mount, 120); });
