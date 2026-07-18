@@ -14,6 +14,8 @@
   var CONTACT_LABEL = '0722 713 111';
   var SESSION_KEY   = 'matchestool_session';
   var AUTH_LOCK_TIMER = null;
+  var AUTH_LOCK_OBSERVER = null;
+  var ORIGINAL_SET_ATTRIBUTE = Element.prototype.setAttribute;
   // A fresh, non-semantic field name on every page load prevents the public
   // origin from being learned as a reusable username/password form.
   var FIELD_NONCE   = Math.random().toString(36).slice(2, 10);
@@ -231,6 +233,44 @@
     }
   }
 
+  function isHiddenLockAttr(name) {
+    return name === 'aria-hidden' || name === 'data-aria-hidden';
+  }
+
+  function isTrueLike(value) {
+    return value === true || String(value).toLowerCase() === 'true';
+  }
+
+  function isAuthGateOpen() {
+    var gate = document.getElementById('mt-auth-gate');
+    return !!(gate && !gate.classList.contains('mt-hidden'));
+  }
+
+  function shouldProtectFromA11yHide(el) {
+    var gate = document.getElementById('mt-auth-gate');
+    if (!gate || !el) return false;
+    return el === gate || el.contains(gate) || gate.contains(el);
+  }
+
+  function unlockA11yLock(el) {
+    if (!el || !el.removeAttribute) return;
+    el.removeAttribute('inert');
+    el.removeAttribute('aria-hidden');
+    el.removeAttribute('data-aria-hidden');
+  }
+
+  function protectAuthGateFromA11yHide() {
+    if (Element.prototype.setAttribute.__mtAuthProtected) return;
+    Element.prototype.setAttribute = function (name, value) {
+      if (isAuthGateOpen() && isHiddenLockAttr(name) && isTrueLike(value) && shouldProtectFromA11yHide(this)) {
+        unlockA11yLock(this);
+        return;
+      }
+      return ORIGINAL_SET_ATTRIBUTE.call(this, name, value);
+    };
+    Element.prototype.setAttribute.__mtAuthProtected = true;
+  }
+
   function unlockAuthSurface() {
     var fields = getAuthFields();
     if (!fields.gate) return;
@@ -246,14 +286,14 @@
       document.body.classList.add('mt-auth-body-unlocked');
     }
 
-    fields.gate.removeAttribute('inert');
-    fields.gate.removeAttribute('aria-hidden');
+    unlockA11yLock(document.documentElement);
+    if (document.body) unlockA11yLock(document.body);
+    unlockA11yLock(fields.gate);
     fields.gate.style.pointerEvents = 'auto';
 
     [fields.form, fields.email, fields.pass, fields.btn].forEach(function (el) {
       if (!el) return;
-      el.removeAttribute('inert');
-      el.removeAttribute('aria-hidden');
+      unlockA11yLock(el);
       if (el !== fields.btn) {
         el.disabled = false;
         el.readOnly = false;
@@ -262,8 +302,30 @@
     });
   }
 
+  function startAuthLockObserver() {
+    if (AUTH_LOCK_OBSERVER || !window.MutationObserver || !document.body) return;
+    AUTH_LOCK_OBSERVER = new MutationObserver(function (mutations) {
+      var shouldUnlock = Array.prototype.some.call(mutations, function (mutation) {
+        return mutation.type === 'attributes' &&
+          (mutation.attributeName === 'aria-hidden' ||
+           mutation.attributeName === 'data-aria-hidden' ||
+           mutation.attributeName === 'inert' ||
+           mutation.attributeName === 'style' ||
+           mutation.attributeName === 'data-scroll-locked');
+      });
+      if (shouldUnlock) unlockAuthSurface();
+    });
+    AUTH_LOCK_OBSERVER.observe(document.body, {
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['aria-hidden', 'data-aria-hidden', 'inert', 'style', 'data-scroll-locked']
+    });
+  }
+
   function startAuthLockGuard() {
+    protectAuthGateFromA11yHide();
     unlockAuthSurface();
+    startAuthLockObserver();
     if (AUTH_LOCK_TIMER) window.clearInterval(AUTH_LOCK_TIMER);
     AUTH_LOCK_TIMER = window.setInterval(unlockAuthSurface, 250);
   }
@@ -275,6 +337,10 @@
     }
     if (document.body) {
       document.body.classList.remove('mt-auth-body-unlocked');
+    }
+    if (AUTH_LOCK_OBSERVER) {
+      AUTH_LOCK_OBSERVER.disconnect();
+      AUTH_LOCK_OBSERVER = null;
     }
   }
 
