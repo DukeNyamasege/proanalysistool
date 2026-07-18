@@ -1,7 +1,7 @@
 {
   "name": "Matchestool.pro — Market Intelligence Terminal",
   "short_name": "Matchestool.pro",
-  "description": "Cyber-grade real-time digit, candle and market analytics terminal for synthetic indices.",
+  "description": "Cross-market Digit Match strategy engine powered by rolling 1,000-tick frequency analysis.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
