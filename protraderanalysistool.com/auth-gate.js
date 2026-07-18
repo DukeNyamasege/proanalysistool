@@ -57,7 +57,7 @@
     '      <div class="mt-field">',
     '        <label class="mt-label" for="mt-email">Username</label>',
     '        <div class="mt-input-wrap">',
-    '          <input class="mt-input" type="text" id="mt-email" name="identity_' + FIELD_NONCE + '" placeholder="" autocomplete="off" aria-autocomplete="none" autocapitalize="none" autocorrect="off" inputmode="text" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true" />',
+    '          <input class="mt-input" type="search" id="mt-email" name="identity_' + FIELD_NONCE + '" placeholder="" autocomplete="off" aria-autocomplete="none" autocapitalize="none" autocorrect="off" inputmode="text" enterkeyhint="next" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true" />',
     '          <span class="mt-input-icon">@</span>',
     '        </div>',
     '      </div>',
@@ -65,7 +65,7 @@
     '      <div class="mt-field">',
     '        <label class="mt-label" for="mt-password">Access Key</label>',
     '        <div class="mt-input-wrap">',
-    '          <input class="mt-input" type="password" id="mt-password" name="access_' + FIELD_NONCE + '" placeholder="" autocomplete="off" aria-autocomplete="none" autocapitalize="none" autocorrect="off" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true" />',
+    '          <input class="mt-input mt-access-input" type="text" id="mt-password" name="access_' + FIELD_NONCE + '" placeholder="" autocomplete="off" aria-autocomplete="none" autocapitalize="none" autocorrect="off" inputmode="text" enterkeyhint="go" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true" />',
     '          <span class="mt-input-icon">&#8918;</span>',
     '        </div>',
     '      </div>',
@@ -219,6 +219,12 @@
     gate.innerHTML = GATE_HTML;
     document.body.appendChild(gate);
     gate.addEventListener('click', function (e) { e.stopPropagation(); });
+    // Keep application-wide hotkeys and input handlers from intercepting the
+    // login controls. Stopping propagation never cancels native text editing.
+    ['keydown', 'keyup', 'keypress', 'beforeinput', 'input', 'change', 'paste',
+      'cut', 'compositionstart', 'compositionupdate', 'compositionend'].forEach(function (eventName) {
+      gate.addEventListener(eventName, function (e) { e.stopPropagation(); });
+    });
     attachFormHandlers();
   }
 

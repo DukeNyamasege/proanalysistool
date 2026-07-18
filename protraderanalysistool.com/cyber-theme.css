@@ -301,6 +301,15 @@ html.mt-auth-locked body > #root {
   box-sizing: border-box !important;
 }
 
+/* The access key remains a normal, permanently editable text control while
+   WebKit/Blink mask its display. This prevents password-manager ownership. */
+.mt-access-input {
+  -webkit-text-security: disc !important;
+}
+
+/* Remove the native clear decoration from the search-style identity field. */
+#mt-email::-webkit-search-cancel-button { display: none !important; }
+
 .mt-input::placeholder {
   color: var(--mt-text-dim) !important;
   opacity: 0.5 !important;
