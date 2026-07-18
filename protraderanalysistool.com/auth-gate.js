@@ -13,6 +13,9 @@
   var CONTACT_URL   = 'https://wa.me/254722713111';
   var CONTACT_LABEL = '0722 713 111';
   var SESSION_KEY   = 'matchestool_session';
+  // A fresh, non-semantic field name on every page load prevents the public
+  // origin from being learned as a reusable username/password form.
+  var FIELD_NONCE   = Math.random().toString(36).slice(2, 10);
 
   // ---- HTML TEMPLATE ----
   var GATE_HTML = [
@@ -50,11 +53,11 @@
     '      <span id="mt-alert-text">Invalid credentials</span>',
     '    </div>',
 
-    '    <form class="mt-form" id="mt-login-form" autocomplete="on">',
+    '    <form class="mt-form" id="mt-login-form" autocomplete="off" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true">',
     '      <div class="mt-field">',
     '        <label class="mt-label" for="mt-email">Username</label>',
     '        <div class="mt-input-wrap">',
-    '          <input class="mt-input" type="text" id="mt-email" name="username" placeholder="" autocomplete="username" autocapitalize="none" autocorrect="off" inputmode="text" spellcheck="false" />',
+    '          <input class="mt-input" type="text" id="mt-email" name="identity_' + FIELD_NONCE + '" placeholder="" autocomplete="off" aria-autocomplete="none" autocapitalize="none" autocorrect="off" inputmode="text" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true" />',
     '          <span class="mt-input-icon">@</span>',
     '        </div>',
     '      </div>',
@@ -62,7 +65,7 @@
     '      <div class="mt-field">',
     '        <label class="mt-label" for="mt-password">Access Key</label>',
     '        <div class="mt-input-wrap">',
-    '          <input class="mt-input" type="password" id="mt-password" name="password" placeholder="" autocomplete="current-password" spellcheck="false" />',
+    '          <input class="mt-input" type="password" id="mt-password" name="access_' + FIELD_NONCE + '" placeholder="" autocomplete="off" aria-autocomplete="none" autocapitalize="none" autocorrect="off" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-protonpass-ignore="true" />',
     '          <span class="mt-input-icon">&#8918;</span>',
     '        </div>',
     '      </div>',
