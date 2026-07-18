@@ -47,6 +47,13 @@
   justify-content: center !important;
   padding: 1.5rem !important;
   min-height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100dvh !important;
+  overflow-y: scroll !important;
+  overflow-x: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  touch-action: pan-y !important;
+  overscroll-behavior-y: contain !important;
 }
 
 /* Background grid */
@@ -611,6 +618,8 @@ button, [role="button"] { font-family: var(--mt-font-mono) !important; }
 /* ---- RESPONSIVE ---- */
 
 @media (max-width: 520px) {
+  #mt-auth-gate { align-items: flex-start !important; justify-content: flex-start !important; padding: 1rem !important; }
+  .mt-auth-container { margin: 0 auto !important; padding-bottom: max(1.25rem, env(safe-area-inset-bottom)); }
   .mt-auth-card  { padding: 1.4rem; }
   .mt-brand-mark { font-size: 1.45rem; }
   .mt-pricing-amount { font-size: 2rem; }
