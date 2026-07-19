@@ -1458,4 +1458,17 @@ export default class MatchestoolMarketDataAPI {
             ...response,
         };
     }
+
+    withDerivMeta(request, response) {
+        return {
+            echo_req: request,
+            provider: {
+                execution: 'matchestool.pro virtual execution',
+                market_data: 'Deriv public API',
+                name: 'developers.deriv.com public market data',
+                url: `wss://${DERIV_PUBLIC_PROVIDER_HOST}/websockets/v3`,
+            },
+            ...response,
+        };
+    }
 }

@@ -119,6 +119,10 @@ export const websiteUrl = () => `${location.protocol}//${location.hostname}/`;
 export const getUrlBase = (path = '') => {
     const l = window.location;
 
+    if (/^\/Trading33(\/|$)/i.test(l.pathname)) {
+        return `/Trading33${/^\//.test(path) ? path : `/${path}`}`;
+    }
+
     if (!/^\/(br_)/.test(l.pathname)) return path;
 
     return `/${l.pathname.split('/')[1]}${/^\//.test(path) ? path : `/${path}`}`;
