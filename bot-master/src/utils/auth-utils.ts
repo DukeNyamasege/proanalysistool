@@ -8,10 +8,11 @@ import Cookies from 'js-cookie';
  * Demo accounts use the VR prefix:
  * - VRTC: Classic demo accounts
  * - VRW: Demo wallet accounts
+ * - DOT: Matchestool demo accounts
  */
 export const isDemoAccount = (loginid: string): boolean => {
     if (!loginid) return false;
-    return loginid.startsWith('VRTC') || loginid.startsWith('VRW');
+    return loginid.startsWith('VRTC') || loginid.startsWith('VRW') || loginid.startsWith('DOT');
 };
 
 /**

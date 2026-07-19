@@ -6,6 +6,8 @@ import AccountSwitcherFooter from './account-swticher-footer';
 import { TDemoAccounts } from './types';
 import { AccountSwitcherDivider, convertCommaValue } from './utils';
 
+const MATCHESTOOL_DEMO_RESET_BALANCE = 9500;
+
 const DemoAccounts = ({
     tabs_labels,
     modifiedVRTCRAccountList,
@@ -39,7 +41,7 @@ const DemoAccounts = ({
                                 onResetBalance={
                                     isVirtual &&
                                     activeLoginId === account.loginid &&
-                                    convertCommaValue(account.balance) !== 10000
+                                    convertCommaValue(account.balance) !== MATCHESTOOL_DEMO_RESET_BALANCE
                                         ? () => {
                                               api_base?.api?.send({
                                                   topup_virtual: 1,

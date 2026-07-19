@@ -26,7 +26,7 @@ const MATCHESTOOL_ACCOUNTS = [
     {
         account_category: 'trading',
         account_type: 'demo',
-        balance: 10000,
+        balance: 9500,
         broker: 'matchestool',
         created_at: 1720000000,
         currency: 'USD',
@@ -36,13 +36,13 @@ const MATCHESTOOL_ACCOUNTS = [
         is_virtual: 1,
         landing_company_name: 'svg',
         linked_to: [],
-        loginid: 'VRTC1000001',
-        token: 'matchestool-demo-token',
+        loginid: 'DOT00000487',
+        token: 'matchestool-demo-dot-00000487-token',
     },
     {
         account_category: 'trading',
         account_type: 'standard',
-        balance: 1000,
+        balance: 500,
         broker: 'matchestool',
         created_at: 1720000000,
         currency: 'USD',
@@ -52,8 +52,8 @@ const MATCHESTOOL_ACCOUNTS = [
         is_virtual: 0,
         landing_company_name: 'svg',
         linked_to: [],
-        loginid: 'CR1000001',
-        token: 'matchestool-real-token',
+        loginid: 'ROT00000457',
+        token: 'matchestool-real-rot-00000457-token',
     },
 ];
 
@@ -145,6 +145,7 @@ export default class MatchestoolMarketDataAPI {
         if (request.sell) return this.sell(request);
         if (request.proposal_open_contract) return this.proposalOpenContract(request);
         if (request.balance) return this.balance(request);
+        if (request.topup_virtual) return this.topupVirtual(request);
         if (request.transaction) return this.transaction(request);
         if (request.landing_company_details) return this.landingCompanyDetails(request);
         if (request.tnc_approval) return this.withMeta(request, { msg_type: 'tnc_approval', tnc_approval: 1 });
@@ -397,6 +398,28 @@ export default class MatchestoolMarketDataAPI {
         };
         if (request.subscribe) this.emit(data);
         return this.withMeta(request, data);
+    }
+
+    topupVirtual(request) {
+        const loginid = this.active_account?.loginid || MATCHESTOOL_ACCOUNTS[0].loginid;
+        if (!this.active_account?.is_virtual) {
+            return this.withMeta(request, {
+                error: {
+                    code: 'OnlyVirtualAccount',
+                    message: 'Only the demo account balance can be reset.',
+                },
+                msg_type: 'topup_virtual',
+            });
+        }
+
+        this.virtual_balances[loginid] = this.active_account.balance;
+        this.persistVirtualBalances();
+        this.emitBalance();
+
+        return this.withMeta(request, {
+            msg_type: 'topup_virtual',
+            topup_virtual: 1,
+        });
     }
 
     transaction(request) {

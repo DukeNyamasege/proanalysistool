@@ -1,24 +1,24 @@
 type TMatchestoolAccountType = 'demo' | 'real';
 
-export const MATCHESTOOL_DEMO_LOGINID = 'VRTC1000001';
-export const MATCHESTOOL_REAL_LOGINID = 'CR1000001';
+export const MATCHESTOOL_DEMO_LOGINID = 'DOT00000487';
+export const MATCHESTOOL_REAL_LOGINID = 'ROT00000457';
 
 export const MATCHESTOOL_LOCAL_ACCOUNTS = [
     {
         account_type: 'demo' as TMatchestoolAccountType,
-        balance: 10000,
+        balance: 9500,
         currency: 'USD',
         is_virtual: 1,
         loginid: MATCHESTOOL_DEMO_LOGINID,
-        token: 'matchestool-demo-token',
+        token: 'matchestool-demo-dot-00000487-token',
     },
     {
         account_type: 'real' as TMatchestoolAccountType,
-        balance: 1000,
+        balance: 500,
         currency: 'USD',
         is_virtual: 0,
         loginid: MATCHESTOOL_REAL_LOGINID,
-        token: 'matchestool-real-token',
+        token: 'matchestool-real-rot-00000457-token',
     },
 ];
 

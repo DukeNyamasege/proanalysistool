@@ -124,15 +124,15 @@ const AccountSwitcher = observer(({ activeAccount }: TAccountSwitcher) => {
         activeAccount?.loginid,
     ]);
     const modifiedCRAccountList = useMemo(() => {
-        return modifiedAccountList?.filter(account => account?.loginid?.includes('CR')) ?? [];
+        return modifiedAccountList?.filter(account => !account?.isVirtual) ?? [];
     }, [modifiedAccountList]);
 
     const modifiedMFAccountList = useMemo(() => {
-        return modifiedAccountList?.filter(account => account?.loginid?.includes('MF')) ?? [];
+        return [];
     }, [modifiedAccountList]);
 
     const modifiedVRTCRAccountList = useMemo(() => {
-        return modifiedAccountList?.filter(account => account?.loginid?.includes('VRT')) ?? [];
+        return modifiedAccountList?.filter(account => account?.isVirtual) ?? [];
     }, [modifiedAccountList]);
 
     const switchAccount = async (loginId: number) => {

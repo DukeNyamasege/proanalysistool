@@ -5,6 +5,10 @@ describe('isDemoAccount', () => {
         expect(isDemoAccount('VRTC1234567')).toBe(true);
     });
 
+    it('identifies Matchestool DOT accounts as demo', () => {
+        expect(isDemoAccount('DOT00000487')).toBe(true);
+    });
+
     it('identifies VRW as demo', () => {
         expect(isDemoAccount('VRW1000001')).toBe(true);
     });

@@ -10,6 +10,12 @@ import { StoreProvider } from '@/hooks/useStore';
 import CallbackPage from '@/pages/callback';
 import Endpoint from '@/pages/endpoint';
 import { TAuthData } from '@/types/api-types';
+import { isDemoAccount } from '@/utils/auth-utils';
+import {
+    establishMatchestoolSession,
+    MATCHESTOOL_DEMO_LOGINID,
+    MATCHESTOOL_REAL_LOGINID,
+} from '@/utils/matchestool-session';
 import { initializeI18n, localize, TranslationProvider } from '@deriv-com/translations';
 import CoreStoreProvider from './CoreStoreProvider';
 import './app-root.scss';
@@ -80,13 +86,29 @@ function App() {
     }, []);
 
     React.useEffect(() => {
-        const accounts_list = localStorage.getItem('accountsList');
-        const client_accounts = localStorage.getItem('clientAccounts');
         const url_params = new URLSearchParams(window.location.search);
         const account_currency = url_params.get('account');
+        let accounts_list = localStorage.getItem('accountsList');
+        let client_accounts = localStorage.getItem('clientAccounts');
         const validCurrencies = [...fiat_currencies_display_order, ...crypto_currencies_display_order];
 
         const is_valid_currency = account_currency && validCurrencies.includes(account_currency?.toUpperCase());
+
+        try {
+            const parsed_accounts = JSON.parse(accounts_list || '{}');
+            const has_current_matchestool_accounts =
+                parsed_accounts?.[MATCHESTOOL_DEMO_LOGINID] && parsed_accounts?.[MATCHESTOOL_REAL_LOGINID];
+
+            if (!has_current_matchestool_accounts) {
+                establishMatchestoolSession(account_currency?.toUpperCase() === 'DEMO' ? 'demo' : 'real', false);
+                accounts_list = localStorage.getItem('accountsList');
+                client_accounts = localStorage.getItem('clientAccounts');
+            }
+        } catch (error) {
+            establishMatchestoolSession(account_currency?.toUpperCase() === 'DEMO' ? 'demo' : 'real', false);
+            accounts_list = localStorage.getItem('accountsList');
+            client_accounts = localStorage.getItem('clientAccounts');
+        }
 
         if (!accounts_list || !client_accounts) return;
 
@@ -101,7 +123,10 @@ function App() {
 
             // Handle demo account
             if (account_currency?.toUpperCase() === 'DEMO') {
-                const demo_account = Object.entries(parsed_accounts).find(([key]) => key.startsWith('VR'));
+                const demo_account = Object.entries(parsed_accounts).find(([loginid]) => {
+                    const account = (parsed_client_accounts as Record<string, any>)?.[loginid];
+                    return Boolean(account?.is_virtual) || account?.account_type === 'demo' || isDemoAccount(loginid);
+                });
 
                 if (demo_account) {
                     const [loginid, token] = demo_account;
@@ -114,7 +139,10 @@ function App() {
             if (account_currency?.toUpperCase() !== 'DEMO' && is_valid_currency) {
                 const real_account = Object.entries(parsed_client_accounts).find(
                     ([loginid, account]) =>
-                        !loginid.startsWith('VR') && account.currency.toUpperCase() === account_currency?.toUpperCase()
+                        !account.is_virtual &&
+                        account.account_type !== 'demo' &&
+                        !isDemoAccount(loginid) &&
+                        account.currency.toUpperCase() === account_currency?.toUpperCase()
                 );
 
                 if (real_account) {
