@@ -11,6 +11,7 @@ const GTM = (() => {
     };
 
     const init = (_root_store: RootStore): void => {
+        if (/^\/Trading33(\/|$)/i.test(window.location.pathname)) return;
         if (initialized) return;
         initialized = true;
 

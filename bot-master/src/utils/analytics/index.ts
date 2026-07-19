@@ -5,6 +5,8 @@ import getCountry from '../getCountry';
 import FIREBASE_INIT_DATA from '../remote_config.json';
 
 export const AnalyticsInitializer = async () => {
+    if (/^\/Trading33(\/|$)/i.test(window.location.pathname)) return;
+
     const account_type = LocalStore?.get('active_loginid')
         ?.match(/[a-zA-Z]+/g)
         ?.join('');

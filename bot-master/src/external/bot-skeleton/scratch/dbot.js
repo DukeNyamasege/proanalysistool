@@ -97,7 +97,12 @@ class DBot {
         };
 
         return new Promise((resolve, reject) => {
-            __webpack_public_path__ = public_path; // eslint-disable-line no-global-assign
+            const normalized_public_path =
+                /^\/Trading33(\/|$)/i.test(window.location.pathname) && (!public_path || public_path === '/')
+                    ? '/Trading33/'
+                    : public_path || '/';
+            __webpack_public_path__ = normalized_public_path; // eslint-disable-line no-global-assign
+            window.__webpack_public_path__ = normalized_public_path;
             ApiHelpers.setInstance(api_helpers_store);
             DBotStore.setInstance(store);
             const window_width = window.innerWidth;
