@@ -18,3 +18,12 @@
 
 /manifest.json
   Cache-Control: no-cache, must-revalidate
+
+/Trading33/
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/Trading33/index.html
+  Cache-Control: no-cache, no-store, must-revalidate
+
+/Trading33/manifest.json
+  Cache-Control: no-cache, must-revalidate
