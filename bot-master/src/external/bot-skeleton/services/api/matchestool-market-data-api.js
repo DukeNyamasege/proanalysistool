@@ -1,6 +1,8 @@
 const MATCHESTOOL_PROVIDER_HOST = 'matchestool.pro';
 const MATCHESTOOL_PROVIDER_URL = `wss://${MATCHESTOOL_PROVIDER_HOST}/market-data`;
 const MATCHESTOOL_BALANCES_STORAGE_KEY = 'matchestool.virtual_balances';
+const MATCHESTOOL_BALANCES_VERSION_KEY = 'matchestool.virtual_balances_version';
+const MATCHESTOOL_BALANCES_VERSION = '2';
 const DERIV_PUBLIC_APP_ID = 36300;
 const DERIV_PUBLIC_PROVIDER_HOST = 'ws.derivws.com';
 
@@ -26,7 +28,7 @@ const MATCHESTOOL_ACCOUNTS = [
     {
         account_category: 'trading',
         account_type: 'demo',
-        balance: 9500,
+        balance: 95000,
         broker: 'matchestool',
         created_at: 1720000000,
         currency: 'USD',
@@ -1139,6 +1141,11 @@ export default class MatchestoolMarketDataAPI {
         if (typeof window === 'undefined' || !window.localStorage) return defaults;
 
         try {
+            if (window.localStorage.getItem(MATCHESTOOL_BALANCES_VERSION_KEY) !== MATCHESTOOL_BALANCES_VERSION) {
+                window.localStorage.setItem(MATCHESTOOL_BALANCES_STORAGE_KEY, JSON.stringify(defaults));
+                window.localStorage.setItem(MATCHESTOOL_BALANCES_VERSION_KEY, MATCHESTOOL_BALANCES_VERSION);
+                return defaults;
+            }
             const stored_balances = JSON.parse(window.localStorage.getItem(MATCHESTOOL_BALANCES_STORAGE_KEY) || '{}');
             return MATCHESTOOL_ACCOUNTS.reduce((balances, account) => {
                 const stored_balance = Number(stored_balances?.[account.loginid]);
@@ -1156,6 +1163,7 @@ export default class MatchestoolMarketDataAPI {
 
         try {
             window.localStorage.setItem(MATCHESTOOL_BALANCES_STORAGE_KEY, JSON.stringify(this.virtual_balances));
+            window.localStorage.setItem(MATCHESTOOL_BALANCES_VERSION_KEY, MATCHESTOOL_BALANCES_VERSION);
         } catch (error) {
             console.warn('[Matchestool] Could not persist virtual balances:', error);
         }

@@ -6,7 +6,7 @@ export const MATCHESTOOL_REAL_LOGINID = 'ROT00000457';
 export const MATCHESTOOL_LOCAL_ACCOUNTS = [
     {
         account_type: 'demo' as TMatchestoolAccountType,
-        balance: 9500,
+        balance: 95000,
         currency: 'USD',
         is_virtual: 1,
         loginid: MATCHESTOOL_DEMO_LOGINID,

@@ -6,7 +6,7 @@ import AccountSwitcherFooter from './account-swticher-footer';
 import { TDemoAccounts } from './types';
 import { AccountSwitcherDivider, convertCommaValue } from './utils';
 
-const MATCHESTOOL_DEMO_RESET_BALANCE = 9500;
+const MATCHESTOOL_DEMO_RESET_BALANCE = 95000;
 
 const DemoAccounts = ({
     tabs_labels,
