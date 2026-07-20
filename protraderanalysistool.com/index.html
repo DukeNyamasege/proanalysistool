@@ -1,48 +1,29 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="mt-auth-pending">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <style>html.mt-auth-pending,html.mt-auth-pending body{background:#050914!important}html.mt-auth-pending body>#root{visibility:hidden!important;pointer-events:none!important}</style>
-    <script>document.documentElement.classList.add('mt-auth-pending');</script>
-    <title>Matchestool.pro — Advanced Market Intelligence Terminal</title>
-    <meta name="description" content="Matchestool.pro — Cyber-grade real-time market intelligence: digit frequency, over/under, even/odd, rise/fall and tick streaming analytics terminal.">
-    <meta name="author" content="Matchestool.pro" />
-
-    <!-- PWA -->
-    <link rel="manifest" href="/manifest.json?v=20260718-8" />
-    <meta name="theme-color" content="#03060d" />
+    <title>Matchestool.pro — Digit Match Strategy Engine</title>
+    <meta name="description" content="Live digit-match signals for Deriv Volatility markets." />
+    <meta name="theme-color" content="#050914" />
+    <meta name="robots" content="noindex, nofollow" />
     <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
-    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png" />
     <link rel="apple-touch-icon" href="/icon-192.png" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="Matchestool.pro" />
-    <meta name="mobile-web-app-capable" content="yes" />
+    <link rel="stylesheet" href="/cyber-theme.css?v=20260720-1" />
+    <link rel="stylesheet" href="/digit-match-app.css?v=20260720-1" />
+    <style>
+      html.mt-auth-pending,
+      html.mt-auth-pending body {
+        background: #050914 !important;
+      }
 
-    
-    <meta property="og:type" content="website" />
-    <meta property="og:title" content="Matchestool.pro — Advanced Market Intelligence Terminal">
-  <meta name="twitter:title" content="Matchestool.pro — Advanced Market Intelligence Terminal">
-  <meta property="og:description" content="Cyber-grade real-time market intelligence: digit frequency, over/under, even/odd, rise/fall and tick streaming analytics terminal.">
-  <meta name="twitter:description" content="Cyber-grade real-time market intelligence: digit frequency, over/under, even/odd, rise/fall and tick streaming analytics terminal.">
-  <meta property="og:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cb531dd8-d4d8-49f7-8b28-927241d7f254/id-preview-7ddaa856--0dfc8806-75f5-4cfc-97b6-3caa4e7dea95.lovable.app-1778760814207.png">
-  <meta name="twitter:image" content="https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cb531dd8-d4d8-49f7-8b28-927241d7f254/id-preview-7ddaa856--0dfc8806-75f5-4cfc-97b6-3caa4e7dea95.lovable.app-1778760814207.png">
-  <meta name="twitter:card" content="summary_large_image">
-
-  <!-- Cyber hacking theme -->
-  <link rel="stylesheet" href="/cyber-theme.css?v=20260718-8" />
-  <!-- Auth gate (loads before the app bundle) -->
-  <script src="/auth-gate.js?v=20260718-8"></script>
-  <!-- DEV BYPASS: Remove this script tag for production builds. -->
-  <script defer src="/dev-supabase-bypass.js?v=20260718-8"></script>
-  <script type="module" crossorigin src="/assets/index-BGh_-MGl.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DJ2dBXgW.css">
-  <link rel="stylesheet" href="/digit-match-app.css?v=20260718-8">
-  <script defer src="/digit-match-app.js?v=20260718-8"></script>
-</head>
-
-  <body>
-    <div id="root"></div>
-  </body>
+      html.mt-auth-pending #dm-app-root {
+        visibility: hidden;
+        pointer-events: none;
+      }
+    </style>
+    <script src="/auth-gate.js?v=20260720-1"></script>
+    <script defer src="/digit-match-app.js?v=20260720-1"></script>
+  </head>
+  <body></body>
 </html>

@@ -4,7 +4,7 @@
   // Deriv's public market-data compatibility endpoint; no account token is used.
   var PUBLIC_WS = 'wss://ws.derivws.com/websockets/v3?app_id=1089';
   var SAMPLE_SIZE = 1000;
-  var SIGNAL_TTL = 30;
+  var SIGNAL_TTL = 60;
   var WATCHLIST = ['R_10','R_25','R_50','R_75','R_100','1HZ10V','1HZ25V','1HZ50V','1HZ75V','1HZ100V'];
   var state = {
     ws: null, markets: [], data: {}, req: {}, reqId: 10, connected: false,
@@ -29,7 +29,7 @@
       '<header class="dm-topbar"><div class="dm-brand"><span class="dm-logo">M</span><div><strong>MATCHESTOOL.PRO</strong><small>Digit Match Strategy Engine</small></div></div>' +
       '<div class="dm-top-actions"><button id="dm-logout">Log out</button></div></header>' +
       '<main class="dm-main">' +
-        '<section class="dm-strategy-strip"><div><span class="dm-kicker">Live watchlist</span><strong>10 Volatility markets</strong><small>V10 · V25 · V50 · V75 · V100 · Standard + 1s</small></div><div class="dm-strip-rule"><span>Signal rule</span><strong>1 tick</strong><small>30-second entry window</small></div></section>' +
+        '<section class="dm-strategy-strip"><div><span class="dm-kicker">Live watchlist</span><strong>10 Volatility markets</strong><small>V10 · V25 · V50 · V75 · V100 · Standard + 1s</small></div><div class="dm-strip-rule"><span>Signal rule</span><strong>1 tick</strong><small>1-minute entry window</small></div></section>' +
         '<section class="dm-grid dm-signal-only">' +
           '<article class="dm-panel dm-signal-panel"><div class="dm-panel-heading"><div><span class="dm-kicker">Top-ranked opportunity</span><h2>Live strategy signal</h2></div><span class="dm-badge" id="dm-signal-state">SCANNING</span></div>' +
             '<div class="dm-signal-empty" id="dm-signal-empty"><div class="dm-radar"><i></i><i></i><span>0–9</span></div><strong id="dm-analysis-title">Connecting to market data</strong><p id="dm-analysis-status">Opening a secure public data stream…</p><div class="dm-analysis-progress"><i id="dm-analysis-bar"></i></div><div class="dm-analysis-steps"><span id="dm-step-connect">Connect</span><span id="dm-step-history">Load ticks</span><span id="dm-step-compare">Compare</span><span id="dm-step-lock">Lock signal</span></div></div>' +
@@ -37,8 +37,8 @@
               '<div class="dm-digit-call"><span>MATCH DIGIT</span><strong id="dm-signal-digit">—</strong></div>' +
               '<div class="dm-signal-metrics"><div><span>Historical frequency</span><strong id="dm-signal-frequency">—</strong></div><div><span>Occurrences</span><strong id="dm-signal-occurrences">—</strong></div><div><span>Sample</span><strong id="dm-signal-sample">—</strong></div></div>' +
               '<div class="dm-confidence"><div><span>Observed edge over 10% baseline</span><strong id="dm-edge">—</strong></div><div class="dm-progress"><i id="dm-edge-bar"></i></div></div>' +
-              '<button class="dm-activate" id="dm-activate">Start signal <span>30-second observation</span></button>' +
-              '<div class="dm-active-trade" id="dm-active-trade" hidden><div class="dm-countdown-row"><span>Signal closes in</span><strong id="dm-countdown">30</strong></div><p>Target <b id="dm-active-digit">—</b> on <b id="dm-active-market">—</b></p><div class="dm-live-title"><span>Live appearing digits</span><strong id="dm-match-status">WAITING FOR MATCH</strong></div><div class="dm-live-digits" id="dm-live-digits"><span>Waiting for live ticks…</span></div></div>' +
+              '<button class="dm-activate" id="dm-activate">Start signal <span>1-minute observation</span></button>' +
+              '<div class="dm-active-trade" id="dm-active-trade" hidden><div class="dm-countdown-row"><span>Signal closes in</span><strong id="dm-countdown">60</strong></div><p>Target <b id="dm-active-digit">—</b> on <b id="dm-active-market">—</b></p><div class="dm-live-title"><span>Live appearing digits</span><strong id="dm-match-status">WAITING FOR MATCH</strong></div><div class="dm-live-digits" id="dm-live-digits"><span>Waiting for live ticks…</span></div></div>' +
             '</div>' +
           '</article>' +
         '</section>' +
@@ -47,11 +47,15 @@
   }
 
   function mount() {
-    if (location.pathname !== '/app' || document.getElementById('dm-app-root')) return;
+    if (document.getElementById('dm-app-root')) return;
+    try {
+      var session = JSON.parse(sessionStorage.getItem('matchestool_session') || 'null');
+      if (!session || !session.token || !session.expiresAt || Date.now() >= session.expiresAt) return;
+    } catch (e) { return; }
     document.documentElement.classList.add('dm-strategy-page');
     document.body.classList.add('dm-strategy-app');
     var root = document.createElement('div'); root.id = 'dm-app-root'; root.innerHTML = template(); document.body.appendChild(root);
-    el('dm-logout').onclick = function () { if (window.matchestoolLogout) window.matchestoolLogout(); location.href = '/auth'; };
+    el('dm-logout').onclick = function () { if (window.matchestoolLogout) window.matchestoolLogout(); location.href = '/'; };
     el('dm-activate').onclick = activateSignal;
     connect();
   }
@@ -110,8 +114,8 @@
     rank();
     if (state.scanned === state.markets.length) {
       subscribeAll(); analysisStage('Comparing digit strength','Ranking 10,000 observations across all markets…',84,2);
-      setTimeout(function(){analysisStage('Locking the signal','Freezing the market, target digit, and 30-second window…',96,3);},700);
-      setTimeout(function(){analysisStage('Signal ready','The selected setup is now locked for 30 seconds.',100,3);state.displayReady=true;showSignal(state.signal);activateSignal();},1600);
+      setTimeout(function(){analysisStage('Locking the signal','Freezing the market, target digit, and 1-minute window…',96,3);},700);
+      setTimeout(function(){analysisStage('Signal ready','The selected setup is now locked for 1 minute.',100,3);state.displayReady=true;showSignal(state.signal);activateSignal();},1600);
     }
   }
 
@@ -167,7 +171,7 @@
     if (s.entry.market.symbol===state.lastSignalSymbol) state.consecutiveSignals++;
     else { state.lastSignalSymbol=s.entry.market.symbol; state.consecutiveSignals=1; }
     state.active={symbol:s.entry.market.symbol,market:marketName(s.entry.market),digit:s.digit,frequency:s.frequency,started:Date.now(),expires:Date.now()+SIGNAL_TTL*1000,digits:[],matched:false,matchCount:0};
-    el('dm-activate').disabled=true; el('dm-active-trade').hidden=false; el('dm-active-digit').textContent=s.digit; el('dm-active-market').textContent=marketName(s.entry.market); el('dm-signal-state').textContent='LOCKED · 30S';
+    el('dm-activate').disabled=true; el('dm-active-trade').hidden=false; el('dm-active-digit').textContent=s.digit; el('dm-active-market').textContent=marketName(s.entry.market); el('dm-signal-state').textContent='LOCKED · 60S';
     el('dm-live-digits').innerHTML='<span>Waiting for live ticks…</span>'; el('dm-match-status').textContent='WAITING FOR MATCH'; el('dm-match-status').classList.remove('is-win');
     clearInterval(state.signalTimer); state.signalTimer=setInterval(function(){ var left=Math.max(0,Math.ceil((state.active.expires-Date.now())/1000)); el('dm-countdown').textContent=left; if(left<=0) finishSignal(state.active.matched?'WIN':'LOSS',state.active.digits.length?state.active.digits[state.active.digits.length-1].digit:null,Date.now()/1000); },250);
   }
@@ -187,7 +191,7 @@
     if(totalWins)totalWins.textContent=wins;if(totalLosses)totalLosses.textContent=losses;if(totalSignals)totalSignals.textContent=wins+losses;
     if(resultRate)resultRate.textContent=(wins+losses)?Math.round(wins/(wins+losses)*100)+'% win rate':'Waiting for first result';
     var record=el('dm-record'),rate=el('dm-win-rate'); if(record)record.textContent=wins+'W · '+losses+'L'; if(rate)rate.textContent=(wins+losses)?Math.round(wins/(wins+losses)*100)+'% match rate':'No settled outcomes yet';
-    var list=el('dm-outcomes'); if(list) list.innerHTML=state.outcomes.length?state.outcomes.map(function(o){var count=Number(o.matchCount||0);return '<div class="dm-result-item"><span class="dm-result-icon '+o.result.toLowerCase()+'">'+(o.result==='WIN'?'✓':'×')+'</span><div><strong>'+esc(o.market)+'</strong><small>Prediction '+o.target+' appeared '+count+' '+(count===1?'time':'times')+' within 30 seconds · '+o.time+'</small></div><b class="'+o.result.toLowerCase()+'">'+(o.result==='WIN'?'MATCH FOUND':'NOT FOUND')+'</b></div>';}).join(''):'<div class="dm-empty-results">Settled signal results will appear here.</div>';
+    var list=el('dm-outcomes'); if(list) list.innerHTML=state.outcomes.length?state.outcomes.map(function(o){var count=Number(o.matchCount||0);return '<div class="dm-result-item"><span class="dm-result-icon '+o.result.toLowerCase()+'">'+(o.result==='WIN'?'✓':'×')+'</span><div><strong>'+esc(o.market)+'</strong><small>Prediction '+o.target+' appeared '+count+' '+(count===1?'time':'times')+' within 1 minute · '+o.time+'</small></div><b class="'+o.result.toLowerCase()+'">'+(o.result==='WIN'?'MATCH FOUND':'NOT FOUND')+'</b></div>';}).join(''):'<div class="dm-empty-results">Settled signal results will appear here.</div>';
   }
 
   window.addEventListener('load', function () { setTimeout(mount, 120); });

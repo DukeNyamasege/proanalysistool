@@ -426,7 +426,7 @@
             // Full reload so the Supabase client re-initialises and reads the
             // session we just wrote to localStorage (pushState won't trigger
             // a re-init of the already-running client).
-            window.location.href = '/app';
+            window.location.href = '/';
           }, 700);
         } else {
           setLoading(false);

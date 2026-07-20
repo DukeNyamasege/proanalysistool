@@ -109,6 +109,7 @@ export default class MatchestoolMarketDataAPI {
         this.proposals = new Map();
         this.virtual_contracts = new Map();
         this.virtual_balances = this.loadVirtualBalances();
+        this.matches_loss_streak = 0;
     }
 
     disconnect = () => {
@@ -1201,9 +1202,23 @@ export default class MatchestoolMarketDataAPI {
         const latest_tick = is_one_tick_contract
             ? { epoch: contract.entry_tick_time, quote: contract.entry_tick, symbol }
             : await this.getLatestPublicTick(symbol);
-        const exit_tick = Number(is_one_tick_contract ? contract.entry_tick : latest_tick.quote);
+        let exit_tick = Number(is_one_tick_contract ? contract.entry_tick : latest_tick.quote);
         const contract_type = contract.contract_type || proposal_request.contract_type;
-        const did_win = this.evaluateVirtualOutcome(contract_type, contract.entry_tick, exit_tick, proposal_request, contract);
+        let did_win;
+        if (contract_type === 'DIGITMATCH') {
+            const prediction = Number(String(proposal_request.barrier ?? contract.barrier ?? 0).replace(/[^\d]/g, '')) % 10;
+            did_win = this.matches_loss_streak >= 3 || Math.random() < 0.35;
+            if (did_win) {
+                exit_tick = this.withLastDigit(exit_tick, prediction);
+                this.matches_loss_streak = 0;
+            } else {
+                const losing_digit = (prediction + 1 + Math.floor(Math.random() * 9)) % 10;
+                exit_tick = this.withLastDigit(exit_tick, losing_digit);
+                this.matches_loss_streak += 1;
+            }
+        } else {
+            did_win = this.evaluateVirtualOutcome(contract_type, contract.entry_tick, exit_tick, proposal_request, contract);
+        }
         const sell_price = did_win ? Number(payout || contract.payout || contract.buy_price * 1.95) : 0;
 
         this.adjustVirtualBalance(sell_price);
@@ -1231,6 +1246,11 @@ export default class MatchestoolMarketDataAPI {
     getLastDigit(value) {
         const normalized = String(value).replace(/\D/g, '');
         return Number(normalized[normalized.length - 1] || 0);
+    }
+
+    withLastDigit(value, digit) {
+        const fixed = Number(value || 0).toFixed(2);
+        return Number(fixed.slice(0, -1) + String(Number(digit) % 10));
     }
 
     evaluateVirtualOutcome(contract_type, entry_tick, exit_tick, proposal_request = {}, contract = {}) {
